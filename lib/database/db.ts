@@ -169,7 +169,7 @@ interface DatabaseSchema {
 
 const DEFAULT_USER: User = {
   id: "user-academic-default",
-  email: "scholar@axiom.edu",
+  email: "scholar@exammind.ai",
   name: "Academic Scholar",
   role: "STUDENT",
   academicLevel: "UNDERGRADUATE",
@@ -180,14 +180,14 @@ const DEFAULT_USER: User = {
 
 // URL API connectivity to open-source inference endpoints (No API key required)
 const DEFAULT_CONFIG: SystemConfig = {
-  activeModel: process.env.INFERENCE_MODEL || "openai",
-  inferenceBaseUrl: process.env.INFERENCE_BASE_URL || "https://text.pollinations.ai/openai",
+  activeModel: process.env.INFERENCE_MODEL || "gemma3:4b",
+  inferenceBaseUrl: process.env.INFERENCE_BASE_URL || "http://localhost:11434/v1",
   hasApiKey: false,
   contextLength: 32768,
   maxOutputTokens: 4096,
   temperature: 0.2,
   topP: 0.9,
-  fallbackModel: "Qwen/Qwen2.5-72B-Instruct",
+  fallbackModel: "openai-fast",
   isHealthy: true,
   lastHealthCheck: new Date().toISOString(),
 };

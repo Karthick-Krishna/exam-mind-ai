@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         documentIds.length > 0 ? documentIds : undefined,
         3
       ),
-      shouldSearchWeb ? fetchRealtimeEducationalData(lastUserPrompt) : Promise.resolve([]),
+      shouldSearchWeb ? fetchRealtimeEducationalData(lastUserPrompt, true) : Promise.resolve([]),
     ]);
 
     let combinedRagContext = "";

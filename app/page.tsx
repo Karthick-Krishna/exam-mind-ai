@@ -205,7 +205,7 @@ export default function LandingPage() {
                     <span className="w-3 h-3 rounded-full bg-yellow-500/80"></span>
                     <span className="w-3 h-3 rounded-full bg-green-500/80"></span>
                   </div>
-                  <span className="font-mono text-slate-400 ml-2">Aether Interactive Academic Preview</span>
+                  <span className="font-mono text-slate-400 ml-2">EXAM MIND AI Academic Preview</span>
                 </div>
                 <span className="font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/20 px-2 py-0.5 rounded text-[10px]">
                   Mode: STEP-BY-STEP SOLVER
@@ -294,7 +294,7 @@ export default function LandingPage() {
               Dedicated Educational Teaching Engine
             </h3>
             <p className="text-sm text-slate-400">
-              Not just an answer generator. AETHER determines the exact pedagogical format that maximizes student comprehension.
+              Not just an answer generator. EXAM MIND AI determines the exact pedagogical format that maximizes student comprehension.
             </p>
           </div>
 
@@ -391,10 +391,10 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
-              A
+              E
             </div>
-            <span className="font-bold text-white text-sm">AETHER ACADEMY</span>
-            <span className="text-[11px] text-slate-400">Universal Educational Intelligence</span>
+            <span className="font-bold text-white text-sm">EXAM MIND AI</span>
+            <span className="text-[11px] text-slate-400">Universal Exam & Academic Intelligence</span>
           </div>
 
           <div className="flex items-center gap-6 text-slate-400">
@@ -406,7 +406,7 @@ export default function LandingPage() {
           </div>
 
           <div>
-            &copy; 2026 AETHER ACADEMY. Deployable on Vercel.
+            &copy; 2026 EXAM MIND AI. Deployable on Vercel.
           </div>
         </div>
       </footer>

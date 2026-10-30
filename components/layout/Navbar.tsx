@@ -39,12 +39,12 @@ export function Navbar() {
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5">
-              <span className="font-bold tracking-tight text-white text-base">AETHER</span>
+              <span className="font-bold tracking-tight text-white text-base">EXAM MIND</span>
               <span className="text-[10px] uppercase font-mono tracking-widest text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-1.5 py-0.2 rounded">
                 AI
               </span>
             </div>
-            <span className="text-[11px] text-slate-400 tracking-wide hidden sm:inline">Universal Academic Intelligence</span>
+            <span className="text-[11px] text-slate-400 tracking-wide hidden sm:inline">Universal Exam & Academic Intelligence</span>
           </div>
         </Link>
 

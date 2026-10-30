@@ -19,21 +19,23 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "AETHER ACADEMY | Universal Educational AI & Academic Companion",
+  title: "EXAM MIND AI | Elite Educational AI Tutor & Real-Time Academic Engine",
   description:
-    "Next-generation open-source educational AI chatbot powered by vLLM, DeepSeek, Qwen 2.5, pgvector textbook RAG, KaTeX mathematics rendering, and university examination modes.",
+    "EXAM MIND AI is an advanced educational AI tutor and academic reasoning engine with Google Gemini-level intelligence, live Google search, textbook RAG, and KaTeX mathematical proofs.",
   keywords: [
+    "EXAM MIND AI",
     "Educational AI",
     "Academic Chatbot",
     "Open-Source LLM",
-    "vLLM",
+    "Gemma 3",
     "DeepSeek R1",
     "Qwen 2.5",
+    "Google Web Search",
     "LaTeX Math Solver",
     "Textbook RAG",
-    "College Exam Preparation",
+    "Exam Preparation",
   ],
-  authors: [{ name: "Aether Academic Intelligence" }],
+  authors: [{ name: "EXAM MIND AI" }],
 };
 
 export default function RootLayout({

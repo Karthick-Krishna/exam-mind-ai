@@ -1,6 +1,6 @@
-# 🚀 AETHER ACADEMY: PRODUCTION DEPLOYMENT & OPERATION GUIDE
+# 🚀 EXAM MIND AI: PRODUCTION DEPLOYMENT & OPERATION GUIDE
 
-This guide details the complete process for deploying **Aether Academy** to production on **Vercel** backed by a **PostgreSQL (pgvector)** database and a high-performance **vLLM GPU cluster**.
+This guide details the complete process for deploying **EXAM MIND AI** to production on **Vercel** backed by a **PostgreSQL (pgvector)** database and high-level open-source AI inference engines.
 
 ---
 
@@ -76,7 +76,7 @@ For production inference, deploy an A100 (80GB) or 2x L40S instance running vLLM
 ### Docker Launch Command:
 ```bash
 docker run --gpus all \
-    --name aether-vllm \
+    --name exam-mind-vllm \
     -v ~/.cache/huggingface:/root/.cache/huggingface \
     -p 8000:8000 \
     --ipc=host \
@@ -104,7 +104,7 @@ curl http://localhost:8000/v1/models
 
 ### Issue 2: Cross-Origin Resource Sharing (CORS) with self-hosted vLLM
 - **Cause**: Browser cannot directly reach non-HTTPS GPU ports.
-- **Architecture Guarantee**: All client requests in Aether Academy route securely through Next.js server-side API endpoints (`/api/chat`). Your vLLM server credentials and IP are never exposed to client browsers.
+- **Architecture Guarantee**: All client requests in EXAM MIND AI route securely through Next.js server-side API endpoints (`/api/chat`). Your model server credentials and IP are never exposed to client browsers.
 
 ### Issue 3: pgvector extension not found
 - **Solution**: Execute `CREATE EXTENSION IF NOT EXISTS vector;` in your Supabase or Neon SQL console prior to running `prisma db push`.

@@ -95,15 +95,15 @@ export function WelcomeScreen({
         <div className="space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-950/70 border border-blue-500/30 text-cyan-300 text-xs font-medium shadow-lg shadow-blue-900/20">
             <Sparkles className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-            <span>Astra 6 Generative AI Tutor & Search Engine</span>
+            <span>EXAM MIND AI • Gemini-Grade Academic Intelligence</span>
           </div>
 
           <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
-            Direct answers. <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400">Pure intelligence.</span>
+            Master Any Exam or Topic. <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400">Pure Intelligence.</span>
           </h1>
 
           <p className="max-w-2xl mx-auto text-sm md:text-base text-slate-400 leading-relaxed">
-            High-precision academic tutor, mathematical derivation engine, and real-time knowledge assistant. Ask anything across sciences, coding, and current events.
+            EXAM MIND AI delivers Gemini-level structured reasoning, step-by-step mathematical problem solving, code debugging, and real-time Google search intelligence.
           </p>
         </div>
 

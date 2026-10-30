@@ -168,7 +168,7 @@ export default function ChatPage() {
       conversationId: activeConversationId || "temp",
       role: "assistant",
       content: "",
-      modelUsed: "Astra 6 (URL Inference)",
+      modelUsed: "EXAM MIND AI",
       createdAt: new Date().toISOString(),
     };
 
@@ -308,7 +308,7 @@ export default function ChatPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `academic-session-${Date.now()}.md`;
+    a.download = `exam-mind-session-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };

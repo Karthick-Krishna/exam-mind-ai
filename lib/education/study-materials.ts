@@ -13,7 +13,7 @@ export interface GenerateMaterialParams {
 export async function generateStudyMaterial(params: GenerateMaterialParams): Promise<StudyMaterial> {
   const id = "mat-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7);
 
-  let systemPrompt = `You are Astra 6, an elite academic AI tutor. Your mission is to generate genuine, mathematically rigorous, pedagogy-focused academic study materials. Never use fake placeholders or generic filler. Always use proper LaTeX notation ($$...$$ for display math, $...$ for inline math).`;
+  let systemPrompt = `You are EXAM MIND AI, an elite academic AI tutor with Google Gemini-level reasoning. Your mission is to generate genuine, mathematically rigorous, pedagogy-focused academic study materials. Never use fake placeholders or generic filler. Always use proper LaTeX notation ($$...$$ for display math, $...$ for inline math).`;
 
   let promptInstruction = "";
   switch (params.type) {

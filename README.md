@@ -1,9 +1,9 @@
-# 🌌 AETHER ACADEMY | Universal Educational AI & Academic Companion
+# 🧠 EXAM MIND AI | Elite Educational AI Tutor & Real-Time Search Engine
 
 > **Core Philosophy**: *"Understanding first. Answers backed by knowledge. Learning without limits."*  
 > **Headline**: *"Your intelligence. Expanded."*
 
-A complete, production-ready, next-generation educational AI application powered by open-source models, vLLM acceleration, pgvector textbook RAG, and an advanced pedagogical reasoning engine. Inspired by the visual prestige and dark luxury aesthetic of **Unuman Corps**.
+A complete, production-ready, next-generation educational AI application powered by high-level open-source models (Google Gemma 3 / GPT-OSS Reasoning), real-time Google & live web search, pgvector textbook RAG, and an advanced pedagogical reasoning engine delivering structured, Gemini-grade explanations. Inspired by the visual prestige and dark luxury aesthetic of **Unuman Corps**.
 
 ---
 
@@ -137,7 +137,7 @@ cp .env.example .env.local
 Configure your inference and database settings:
 ```ini
 # PostgreSQL with pgvector (Supabase, Neon, or local)
-DATABASE_URL="postgresql://postgres:password@localhost:5432/aether_academy"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/exam_mind_ai"
 
 # Open-Source Inference Endpoint (vLLM, Ollama, Together, DeepSeek, Groq)
 INFERENCE_BASE_URL="http://localhost:8000/v1"
@@ -155,7 +155,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 🖥️ Deploying vLLM on a GPU Server
 
-To run your own high-throughput GPU model server for Aether Academy:
+To run your own high-throughput GPU model server for EXAM MIND AI:
 
 ```bash
 docker run --gpus all \

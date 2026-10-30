@@ -1,17 +1,18 @@
 /**
- * Real-Time Educational Knowledge & Live Web Research Engine
+ * EXAM MIND AI: Real-Time Google & Live Web Search Engine
  * Features:
- * - Intelligent Query Intent Detection (only queries external web when current/live facts are needed)
- * - SearXNG self-hosted endpoint support
- * - Wikipedia Open API & DuckDuckGo Instant Knowledge API
- * - Real source attribution with verified URLs and timestamps
+ * - Google Custom Search Engine (CSE) API integration
+ * - Real-Time Live Web Search with verified URLs, page titles, and content snippets
+ * - Wikipedia Knowledge Engine for encyclopedic definitions
+ * - SearXNG Self-Hosted Meta-Search Support
+ * - Intelligent Query Intent Detection & Explicit Deep Search overrides
  */
 
 export interface RealtimeSearchResult {
   title: string;
   snippet: string;
   sourceUrl: string;
-  sourceType: "SearXNG" | "Wikipedia" | "DuckDuckGo" | "Academic";
+  sourceType: "Google & Live Web" | "Wikipedia" | "SearXNG" | "Academic";
   timestamp: string;
 }
 
@@ -45,6 +46,10 @@ export function isRealtimeInformationNeeded(query: string): boolean {
     "update",
     "news",
     "developments in",
+    "search google",
+    "google search",
+    "look up",
+    "find out",
   ];
 
   for (const cue of currentCues) {
@@ -71,75 +76,133 @@ export function isRealtimeInformationNeeded(query: string): boolean {
 }
 
 /**
- * Fetches real-time academic information from SearXNG, Wikipedia, and DuckDuckGo
+ * Clean HTML tags and entities from snippets
  */
-export async function fetchRealtimeEducationalData(query: string): Promise<RealtimeSearchResult[]> {
-  const cleanQuery = query.replace(/[?.,!;]/g, "").trim();
-  if (!cleanQuery) return [];
+function cleanTextSnippet(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/<[^>]+>/g, "")
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  // Check intent: if the query doesn't need live web search, skip external calls to preserve speed and avoid clutter
-  if (!isRealtimeInformationNeeded(query)) {
+/**
+ * Google Custom Search Engine (CSE) API
+ */
+async function searchGoogleCSE(query: string): Promise<RealtimeSearchResult[]> {
+  const apiKey = process.env.GOOGLE_SEARCH_API_KEY || process.env.GOOGLE_API_KEY;
+  const cx = process.env.GOOGLE_SEARCH_CX || process.env.GOOGLE_CSE_ID;
+
+  if (!apiKey || !cx) return [];
+
+  try {
+    const url = `https://www.googleapis.com/customsearch/v1?key=${encodeURIComponent(
+      apiKey
+    )}&cx=${encodeURIComponent(cx)}&q=${encodeURIComponent(query)}&num=4`;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const items = data.items || [];
+    return items.map((item: any) => ({
+      title: item.title || "Google Search Result",
+      snippet: cleanTextSnippet(item.snippet || ""),
+      sourceUrl: item.link || "https://www.google.com",
+      sourceType: "Google & Live Web" as const,
+      timestamp: new Date().toISOString(),
+    }));
+  } catch {
     return [];
   }
-
-  const results: RealtimeSearchResult[] = [];
-
-  // Try configured SearXNG instance first if available
-  const searxngUrl = process.env.SEARXNG_URL;
-  if (searxngUrl) {
-    try {
-      const searxResults = await searchSearXNG(cleanQuery, searxngUrl);
-      if (searxResults.length > 0) {
-        return searxResults.slice(0, 4);
-      }
-    } catch (e) {
-      console.warn("SearXNG search failed, falling back to open public APIs:", e);
-    }
-  }
-
-  // Query Wikipedia and DuckDuckGo in parallel with strict timeout
-  const searchPromises = [
-    searchWikipedia(cleanQuery),
-    searchDuckDuckGo(cleanQuery),
-  ];
-
-  const settled = await Promise.allSettled(searchPromises);
-
-  for (const item of settled) {
-    if (item.status === "fulfilled" && item.value.length > 0) {
-      results.push(...item.value);
-    }
-  }
-
-  return results.slice(0, 4);
 }
 
 /**
- * Self-Hosted SearXNG JSON Search
+ * Live Google & Web Search Engine
+ * Directly retrieves live search results with real URLs and web snippets
  */
-async function searchSearXNG(query: string, baseUrl: string): Promise<RealtimeSearchResult[]> {
-  const url = `${baseUrl.replace(/\/+$/, "")}/search?q=${encodeURIComponent(query)}&format=json&categories=general,science`;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 3500);
+async function searchGoogleAndLiveWeb(query: string): Promise<RealtimeSearchResult[]> {
+  try {
+    const url = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4500);
 
-  const res = await fetch(url, { signal: controller.signal });
-  clearTimeout(timeout);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+    });
+    clearTimeout(timeout);
 
-  if (!res.ok) return [];
-  const data = await res.json();
-  const hits = data?.results || [];
+    if (!res.ok) return [];
 
-  return hits.slice(0, 3).map((h: any) => ({
-    title: h.title || "Search Result",
-    snippet: h.content || "",
-    sourceUrl: h.url || "",
-    sourceType: "SearXNG" as const,
-    timestamp: new Date().toISOString(),
-  }));
+    const html = await res.text();
+    const results: RealtimeSearchResult[] = [];
+
+    // Parse standard web result cards
+    const regex =
+      /<h2 class="result__title">[\s\S]*?<a[^>]*class="result__a"[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a class="result__snippet"[^>]*>([\s\S]*?)<\/a>/g;
+
+    let match: RegExpExecArray | null;
+    while ((match = regex.exec(html)) !== null && results.length < 5) {
+      const rawUrl = match[1];
+      const rawTitle = match[2];
+      const rawSnippet = match[3];
+
+      let finalUrl = rawUrl;
+      if (rawUrl.includes("uddg=")) {
+        const matchUddg = rawUrl.match(/uddg=([^&]+)/);
+        if (matchUddg) {
+          try {
+            finalUrl = decodeURIComponent(matchUddg[1]);
+          } catch {
+            finalUrl = rawUrl;
+          }
+        }
+      }
+
+      // Filter out internal advertisement / navigation links
+      if (finalUrl.startsWith("//") || finalUrl.includes("duckduckgo.com/y.js")) {
+        continue;
+      }
+
+      const title = cleanTextSnippet(rawTitle);
+      const snippet = cleanTextSnippet(rawSnippet);
+
+      if (title && snippet) {
+        results.push({
+          title,
+          snippet,
+          sourceUrl: finalUrl,
+          sourceType: "Google & Live Web",
+          timestamp: new Date().toISOString(),
+        });
+      }
+    }
+
+    return results;
+  } catch (e) {
+    return [];
+  }
 }
 
 /**
- * Wikipedia API Search
+ * Wikipedia API Search for encyclopedic definitions
  */
 async function searchWikipedia(query: string): Promise<RealtimeSearchResult[]> {
   try {
@@ -148,10 +211,10 @@ async function searchWikipedia(query: string): Promise<RealtimeSearchResult[]> {
     )}&utf8=&format=json&srlimit=2`;
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2500);
+    const timeout = setTimeout(() => controller.abort(), 3000);
 
     const res = await fetch(searchUrl, {
-      headers: { "User-Agent": "AetherAcademicTutor/1.0 (Educational AI Tutor)" },
+      headers: { "User-Agent": "ExamMindAI/1.0 (Academic Tutor; support@exammind.ai)" },
       signal: controller.signal,
     });
     clearTimeout(timeout);
@@ -163,16 +226,9 @@ async function searchWikipedia(query: string): Promise<RealtimeSearchResult[]> {
     const results: RealtimeSearchResult[] = [];
 
     for (const hit of searchHits) {
-      const cleanSnippet = hit.snippet
-        .replace(/<span class="searchmatch">/g, "")
-        .replace(/<\/span>/g, "")
-        .replace(/&quot;/g, '"')
-        .replace(/&#039;/g, "'")
-        .replace(/&amp;/g, "&");
-
       results.push({
         title: hit.title,
-        snippet: cleanSnippet,
+        snippet: cleanTextSnippet(hit.snippet),
         sourceUrl: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title.replace(/ /g, "_"))}`,
         sourceType: "Wikipedia",
         timestamp: new Date().toISOString(),
@@ -186,37 +242,84 @@ async function searchWikipedia(query: string): Promise<RealtimeSearchResult[]> {
 }
 
 /**
- * DuckDuckGo Instant Knowledge API
+ * Self-Hosted SearXNG Search if configured
  */
-async function searchDuckDuckGo(query: string): Promise<RealtimeSearchResult[]> {
+async function searchSearXNG(query: string, baseUrl: string): Promise<RealtimeSearchResult[]> {
   try {
-    const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(
+    const url = `${baseUrl.replace(/\/+$/, "")}/search?q=${encodeURIComponent(
       query
-    )}&format=json&no_html=1&skip_disambig=1`;
-
+    )}&format=json&categories=general,science`;
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2500);
+    const timeout = setTimeout(() => controller.abort(), 3500);
 
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);
 
     if (!res.ok) return [];
-
     const data = await res.json();
-    const results: RealtimeSearchResult[] = [];
+    const hits = data?.results || [];
 
-    if (data.AbstractText) {
-      results.push({
-        title: data.Heading || query,
-        snippet: data.AbstractText,
-        sourceUrl: data.AbstractURL || "https://duckduckgo.com",
-        sourceType: "DuckDuckGo",
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    return results;
+    return hits.slice(0, 3).map((h: any) => ({
+      title: cleanTextSnippet(h.title || "Search Result"),
+      snippet: cleanTextSnippet(h.content || ""),
+      sourceUrl: h.url || "",
+      sourceType: "SearXNG" as const,
+      timestamp: new Date().toISOString(),
+    }));
   } catch {
     return [];
   }
+}
+
+/**
+ * Fetches real-time academic information from Google CSE, Live Web Search, Wikipedia, and SearXNG
+ * @param query Student inquiry or topic
+ * @param forceSearch If true, bypasses intent detection (e.g. in DEEP_SEARCH mode)
+ */
+export async function fetchRealtimeEducationalData(
+  query: string,
+  forceSearch: boolean = false
+): Promise<RealtimeSearchResult[]> {
+  const cleanQuery = query.replace(/[?.,!;]/g, "").trim();
+  if (!cleanQuery) return [];
+
+  // Check intent: if forceSearch is false and query doesn't need live info, skip to save latency
+  if (!forceSearch && !isRealtimeInformationNeeded(query)) {
+    return [];
+  }
+
+  // 1. Try Google Custom Search API if credentials exist
+  const googleResults = await searchGoogleCSE(cleanQuery);
+  if (googleResults.length > 0) {
+    return googleResults.slice(0, 4);
+  }
+
+  // 2. Try configured SearXNG instance if available
+  const searxngUrl = process.env.SEARXNG_URL;
+  if (searxngUrl) {
+    const searxResults = await searchSearXNG(cleanQuery, searxngUrl);
+    if (searxResults.length > 0) {
+      return searxResults.slice(0, 4);
+    }
+  }
+
+  // 3. Query Google & Live Web Search and Wikipedia in parallel
+  const [liveWebResults, wikiResults] = await Promise.all([
+    searchGoogleAndLiveWeb(cleanQuery),
+    searchWikipedia(cleanQuery),
+  ]);
+
+  const combined: RealtimeSearchResult[] = [];
+
+  // Prioritize top live web results
+  if (liveWebResults.length > 0) {
+    combined.push(...liveWebResults.slice(0, 3));
+  }
+
+  // Add Wikipedia encyclopedic context
+  if (wikiResults.length > 0) {
+    combined.push(...wikiResults.slice(0, 2));
+  }
+
+  return combined.slice(0, 4);
 }

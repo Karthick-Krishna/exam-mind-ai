@@ -10,25 +10,25 @@ export interface ModelEndpoint {
 
 export const AVAILABLE_MODELS: ModelEndpoint[] = [
   {
-    id: "openai",
-    name: "Open-Source Fast Cluster (Pollinations URL API - Free)",
+    id: "gemma3:4b",
+    name: "Gemma 3 (4.3B High-Speed Academic Model - Local Ollama)",
+    family: "Gemma",
+    contextWindow: 131072,
+    recommendedRole: "Ultra-Fast Local Inference, Gemini-Style Explanations & STEM",
+  },
+  {
+    id: "openai-fast",
+    name: "GPT-OSS 20B High-Level Reasoning Cluster (URL API - Free)",
     family: "vLLM / Open URL",
     contextWindow: 65536,
-    recommendedRole: "Instant URL API, High-Speed Educational Tutor, No Keys Required",
+    recommendedRole: "Gemini-Level Thinking, Advanced Derivations & Live Search Synthesis",
   },
   {
     id: "gemma4:latest",
     name: "Gemma 4 (8.0B Reasoning & Thinking Model - Local Ollama)",
-    family: "Gemma / Ollama",
+    family: "Gemma",
     contextWindow: 131072,
-    recommendedRole: "Primary Local Inference, STEM & Advanced Mathematical Derivations",
-  },
-  {
-    id: "gemma3:4b",
-    name: "Gemma 3 (4.3B High-Speed Model - Local Ollama)",
-    family: "Gemma / Ollama",
-    contextWindow: 131072,
-    recommendedRole: "Ultra-Fast Local Q&A and Fact Retrieval",
+    recommendedRole: "Deep Analytical Reasoning & Mathematical Proofs",
   },
   {
     id: "Qwen/Qwen2.5-72B-Instruct",
@@ -409,6 +409,7 @@ function transformOpenAiStreamToTextStream(upstream: ReadableStream<Uint8Array>)
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   let buffer = "";
+  let inThinkTag = false;
 
   return new ReadableStream({
     async start(controller) {
@@ -432,9 +433,26 @@ function transformOpenAiStreamToTextStream(upstream: ReadableStream<Uint8Array>)
               try {
                 const json = JSON.parse(trimmed.slice(6));
                 const delta = json.choices?.[0]?.delta;
-                const token = delta?.content || delta?.reasoning;
+                let token = delta?.content;
+                // If model only provides reasoning, fallback to reasoning only if content is not used
+                if (!token && delta?.reasoning) {
+                  continue; // Suppress raw reasoning scratchpad
+                }
                 if (token) {
-                  controller.enqueue(encoder.encode(token));
+                  if (token.includes("<think>")) {
+                    inThinkTag = true;
+                    token = token.replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "");
+                  } else if (inThinkTag) {
+                    if (token.includes("</think>")) {
+                      inThinkTag = false;
+                      token = token.slice(token.indexOf("</think>") + 8);
+                    } else {
+                      continue; // skip token while inside thinking tag
+                    }
+                  }
+                  if (token) {
+                    controller.enqueue(encoder.encode(token));
+                  }
                 }
               } catch {
                 // Ignore partial JSON chunks

@@ -29,12 +29,33 @@ interface ChatMessageProps {
 }
 
 /**
+ * Strips raw internal thinking processes, chain-of-thought traces, or <think> tags
+ */
+function stripThinkingTraces(text: string): string {
+  if (!text) return "";
+  let cleaned = text.replace(/<think>[\s\S]*?<\/think>/gi, "");
+  // If the model output a raw "Thinking Process:" block before the :::answer
+  if (cleaned.includes(":::answer")) {
+    const idx = cleaned.indexOf(":::answer");
+    cleaned = cleaned.slice(idx);
+  } else if (cleaned.includes("[HIGHLIGHTED ANSWER]")) {
+    const idx = cleaned.indexOf("[HIGHLIGHTED ANSWER]");
+    cleaned = cleaned.slice(idx);
+  } else {
+    // If no :::answer tag, remove raw "Thinking Process:" prefix
+    cleaned = cleaned.replace(/^Thinking Process:[\s\S]*?(?=\n\n[A-Z0-9#*-])/i, "");
+  }
+  return cleaned.trim();
+}
+
+/**
  * Extracts :::answer ... ::: or [HIGHLIGHTED ANSWER] block from raw markdown content
  */
-function extractHighlightedAnswer(content: string): {
+function extractHighlightedAnswer(rawContent: string): {
   highlightedAnswer: string | null;
   remainingContent: string;
 } {
+  const content = stripThinkingTraces(rawContent);
   if (!content) return { highlightedAnswer: null, remainingContent: "" };
 
   // 1. Check for closed :::answer ... :::
@@ -145,7 +166,7 @@ export function ChatMessage({
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-slate-200">
-                {isAssistant ? "Astra 6 AI Tutor" : "You"}
+                {isAssistant ? "EXAM MIND AI" : "You"}
               </span>
               {isAssistant && message.modelUsed && (
                 <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-white/10">
