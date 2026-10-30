@@ -7,10 +7,9 @@ import {
   Pin,
   Trash2,
   Bookmark,
-  Sparkles,
+  X,
   Layers,
-  ChevronRight,
-  BookOpen
+  ChevronLeft
 } from "lucide-react";
 import { Conversation } from "@/lib/database/db";
 
@@ -23,6 +22,8 @@ interface ChatSidebarProps {
   onTogglePin: (id: string, currentPin: boolean) => void;
   selectedMode: string;
   onSelectMode: (mode: string) => void;
+  isOpenMobile?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export function ChatSidebar({
@@ -33,7 +34,8 @@ export function ChatSidebar({
   onDelete,
   onTogglePin,
   selectedMode,
-  onSelectMode,
+  isOpenMobile = false,
+  onCloseMobile,
 }: ChatSidebarProps) {
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -44,12 +46,34 @@ export function ChatSidebar({
   const pinned = filtered.filter((c) => c.isPinned);
   const recent = filtered.filter((c) => !c.isPinned);
 
-  return (
-    <aside className="w-72 flex-shrink-0 h-full border-r border-white/[0.08] bg-[#040814]/90 flex flex-col justify-between">
+  const handleSelectConv = (id: string) => {
+    onSelect(id);
+    onCloseMobile?.();
+  };
+
+  const handleCreateNew = () => {
+    onNewChat();
+    onCloseMobile?.();
+  };
+
+  const sidebarContent = (
+    <div className="w-full h-full flex flex-col justify-between bg-[#040814] text-slate-200">
       {/* Top Header & Actions */}
-      <div className="p-4 space-y-3">
+      <div className="p-3.5 sm:p-4 space-y-3">
+        {/* Mobile top bar with close button */}
+        <div className="flex md:hidden items-center justify-between pb-1 border-b border-white/5">
+          <span className="font-semibold text-xs text-white">Academic Sessions</span>
+          <button
+            onClick={onCloseMobile}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+            aria-label="Close sidebar"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
         <button
-          onClick={onNewChat}
+          onClick={handleCreateNew}
           className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg shadow-blue-600/25 transition-all group"
         >
           <MessageSquarePlus className="w-4 h-4 group-hover:scale-110 transition-transform" />
@@ -83,7 +107,7 @@ export function ChatSidebar({
                 key={conv.id}
                 conversation={conv}
                 isActive={conv.id === activeId}
-                onSelect={() => onSelect(conv.id)}
+                onSelect={() => handleSelectConv(conv.id)}
                 onDelete={(e) => {
                   e.stopPropagation();
                   onDelete(conv.id);
@@ -114,7 +138,7 @@ export function ChatSidebar({
                 key={conv.id}
                 conversation={conv}
                 isActive={conv.id === activeId}
-                onSelect={() => onSelect(conv.id)}
+                onSelect={() => handleSelectConv(conv.id)}
                 onDelete={(e) => {
                   e.stopPropagation();
                   onDelete(conv.id);
@@ -138,7 +162,33 @@ export function ChatSidebar({
           </span>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Persistent Sidebar */}
+      <aside className="hidden md:flex w-72 flex-shrink-0 h-full border-r border-white/[0.08]">
+        {sidebarContent}
+      </aside>
+
+      {/* Mobile Slide-In Overlay Drawer */}
+      {isOpenMobile && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={onCloseMobile}
+            aria-hidden="true"
+          />
+
+          {/* Drawer Body */}
+          <aside className="relative w-4/5 max-w-xs h-full bg-[#040814] border-r border-white/10 z-10 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left duration-200">
+            {sidebarContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -158,31 +208,31 @@ function ConversationItem({
   return (
     <div
       onClick={onSelect}
-      className={`group relative flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer text-xs transition-all ${
+      className={`group relative flex items-center justify-between px-2.5 py-2.5 rounded-lg cursor-pointer text-xs transition-all ${
         isActive
           ? "bg-blue-600/20 text-white border border-blue-500/30 font-medium"
           : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
       }`}
     >
       <div className="truncate pr-2 flex items-center gap-2">
-        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-cyan-400" : "bg-slate-600"}`}></span>
+        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-cyan-400" : "bg-slate-600"}`}></span>
         <span className="truncate">{conversation.title}</span>
       </div>
 
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         <button
           onClick={onTogglePin}
-          className="p-1 text-slate-500 hover:text-cyan-400 rounded"
+          className="p-1.5 text-slate-500 hover:text-cyan-400 rounded"
           title={conversation.isPinned ? "Unpin" : "Pin"}
         >
-          <Pin className={`w-3 h-3 ${conversation.isPinned ? "fill-cyan-400 text-cyan-400" : ""}`} />
+          <Pin className={`w-3.5 h-3.5 ${conversation.isPinned ? "fill-cyan-400 text-cyan-400" : ""}`} />
         </button>
         <button
           onClick={onDelete}
-          className="p-1 text-slate-500 hover:text-red-400 rounded"
+          className="p-1.5 text-slate-500 hover:text-red-400 rounded"
           title="Delete session"
         >
-          <Trash2 className="w-3 h-3" />
+          <Trash2 className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>

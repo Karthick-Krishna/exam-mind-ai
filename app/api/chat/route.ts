@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addMessage, createConversation, getConversation, getDefaultUser, recordLearningActivity } from "@/lib/database/db";
 import { buildSystemPrompt } from "@/lib/ai/prompts";
-import { createChatCompletionStream } from "@/lib/ai/model-adapter";
+import { createChatCompletionStream, selectDualAiModel } from "@/lib/ai/model-adapter";
 import { formatRetrievedContext, retrieveRelevantPassages } from "@/lib/rag/retrieval";
 import { fetchRealtimeEducationalData, isRealtimeInformationNeeded } from "@/lib/rag/realtime-search";
 
@@ -56,18 +56,29 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Intelligent Knowledge Retrieval:
-    // - Always retrieve textbooks if documentIds provided or textbooks exist
-    // - Perform live search for DEEP_SEARCH mode, or if inquiry needs real-time facts
-    const shouldSearchWeb = mode === "DEEP_SEARCH" || isRealtimeInformationNeeded(lastUserPrompt);
+    // 2. Dual AI Model Dispatch & Manual Model Override:
+    // - GPT 120B OSS: Used for Deep Search, Thinking, and all Coding/Programming/Math prompts
+    // - Fast Academic Engine: Used for Quick Answer & Basic Tasks
+    // - Explicit manual selection from user takes immediate precedence
+    const dualModel = selectDualAiModel(lastUserPrompt, mode);
+    const chosenModelId = model && model !== "auto" ? model : dualModel.modelId;
+    const displayModelName =
+      model === "gpt-120b-oss"
+        ? "GPT 120B OSS (Manual Selection)"
+        : model === "openai-fast"
+        ? "GPT-OSS Fast Academic (Manual Selection)"
+        : dualModel.displayName;
 
+    // 3. Intelligent Knowledge Retrieval:
+    // - Google & Live Web Search runs on ALL modes (Quick Answer, Thinking, Deep Search)
+    // - In Deep Search, performs multi-pass crawling over 2-3 seconds with full citations
     const [retrievedPassages, realtimeData] = await Promise.all([
       retrieveRelevantPassages(
         lastUserPrompt,
         documentIds.length > 0 ? documentIds : undefined,
         3
       ),
-      shouldSearchWeb ? fetchRealtimeEducationalData(lastUserPrompt, true) : Promise.resolve([]),
+      fetchRealtimeEducationalData(lastUserPrompt, mode),
     ]);
 
     let combinedRagContext = "";
@@ -97,7 +108,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 3. Assemble pedagogical system prompt with response mode and RAG context
+    // 4. Assemble pedagogical system prompt with response mode and RAG context
     const systemInstruction = buildSystemPrompt({
       mode,
       documentContext: combinedRagContext,
@@ -118,8 +129,8 @@ export async function POST(req: NextRequest) {
       chatHistory.push({ role: "user", content: lastUserPrompt });
     }
 
-    // 4. Create streaming response via open-source model URL API
-    const tokenStream = await createChatCompletionStream(chatHistory, { model });
+    // 5. Create streaming response via open-source model URL API
+    const tokenStream = await createChatCompletionStream(chatHistory, { model: chosenModelId });
 
     // Track learning progress asynchronously
     recordLearningActivity({
@@ -147,7 +158,7 @@ export async function POST(req: NextRequest) {
             content: accumulatedText,
             citations: citations.length > 0 ? citations : undefined,
             tokensUsed: Math.ceil(accumulatedText.length / 4),
-            modelUsed: model || "Open-Source AI (URL API)",
+            modelUsed: displayModelName,
           });
         } catch (e) {
           console.error("Failed to persist assistant message:", e);
@@ -159,6 +170,7 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
         "X-Conversation-Id": conversationId,
+        "X-Model-Used": displayModelName,
         "X-Citations": encodeURIComponent(JSON.stringify(citations)),
         "Cache-Control": "no-cache, no-transform",
       },

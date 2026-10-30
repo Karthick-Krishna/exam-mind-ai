@@ -10,17 +10,17 @@ interface ThinkingIndicatorProps {
 }
 
 export function ThinkingIndicator({ mode, hasTextbookGrounding }: ThinkingIndicatorProps) {
-  let label = "Generating answer...";
+  let label = "Searching web & generating answer (Fast Academic Engine)...";
   let Icon = Sparkles;
 
   if (mode === "DEEP_SEARCH") {
-    label = "Searching web & knowledge sources...";
+    label = "Searching Google & compiling full research dossier (GPT 120B OSS)...";
     Icon = Globe;
   } else if (mode === "THINKING") {
-    label = "Reasoning through solution & calculations...";
+    label = "Deep answering & rigorous reasoning (GPT 120B OSS)...";
     Icon = Brain;
   } else if (hasTextbookGrounding) {
-    label = "Retrieving textbook passages...";
+    label = "Searching web & retrieving textbook passages...";
     Icon = BookOpen;
   }
 

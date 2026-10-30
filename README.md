@@ -139,10 +139,10 @@ Configure your inference and database settings:
 # PostgreSQL with pgvector (Supabase, Neon, or local)
 DATABASE_URL="postgresql://postgres:password@localhost:5432/exam_mind_ai"
 
-# Open-Source Inference Endpoint (vLLM, Ollama, Together, DeepSeek, Groq)
-INFERENCE_BASE_URL="http://localhost:8000/v1"
+# Open-Source Inference Endpoint (Online Cloud API - 100% Vercel Ready)
+INFERENCE_BASE_URL="https://text.pollinations.ai"
 INFERENCE_API_KEY=""
-INFERENCE_MODEL="Qwen/Qwen2.5-72B-Instruct"
+INFERENCE_MODEL="openai-fast"
 ```
 
 ### 3. Run Locally

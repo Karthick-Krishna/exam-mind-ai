@@ -137,42 +137,42 @@ export default function LandingPage() {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative pt-20 pb-28 md:pt-32 md:pb-40 overflow-hidden bg-grid-pattern">
+      <section className="relative pt-12 pb-16 sm:pt-20 sm:pb-28 md:pt-32 md:pb-40 overflow-hidden bg-grid-pattern">
         {/* Radiant Ambient Lighting */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] radiant-glow pointer-events-none opacity-50"></div>
         <div className="absolute top-1/3 right-10 w-96 h-96 radiant-cyan-glow pointer-events-none opacity-20"></div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center space-y-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10 text-center space-y-6 sm:space-y-8">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/70 border border-blue-500/30 text-cyan-300 text-xs font-medium shadow-xl shadow-blue-900/20">
-            <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
-            <span>Open-Weight Models • vLLM Accelerated • pgvector Grounded</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-950/70 border border-blue-500/30 text-cyan-300 text-[11px] sm:text-xs font-medium shadow-xl shadow-blue-900/20 max-w-full">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 animate-pulse flex-shrink-0" />
+            <span className="truncate">Open-Weight Models • Google Search • Textbook RAG</span>
           </div>
 
           {/* Headline */}
-          <div className="space-y-4 max-w-4xl mx-auto">
-            <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
+          <div className="space-y-3 sm:space-y-4 max-w-4xl mx-auto">
+            <h1 className="text-3xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-tight sm:leading-[1.1]">
               Your intelligence.{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400">
                 Expanded.
               </span>
             </h1>
 
-            <p className="max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-slate-400 leading-relaxed font-normal">
+            <p className="max-w-2xl mx-auto text-sm sm:text-lg md:text-xl text-slate-400 leading-relaxed font-normal">
               Learn, explore, understand, and solve anything. Your personal AI academic companion powered by open-source intelligence.
             </p>
           </div>
 
           {/* Philosophy Statement */}
-          <div className="inline-block px-5 py-2 rounded-xl bg-slate-900/60 border border-white/10 text-xs sm:text-sm font-mono text-cyan-300 tracking-wide">
-            Understanding first. Answers backed by knowledge. Learning without limits.
+          <div className="inline-block px-4 py-1.5 sm:px-5 sm:py-2 rounded-xl bg-slate-900/60 border border-white/10 text-[11px] sm:text-sm font-mono text-cyan-300 tracking-wide max-w-full">
+            Understanding first. Answers backed by knowledge.
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 pt-2 sm:pt-4 max-w-md sm:max-w-none mx-auto w-full">
             <Link
               href="/chat"
-              className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all group"
+              className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 transition-all group"
             >
               <span>Launch Academic Chat</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -180,7 +180,7 @@ export default function LandingPage() {
 
             <Link
               href="/documents"
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-200 font-semibold text-sm transition-all"
+              className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-200 font-semibold text-sm transition-all"
             >
               <BookOpen className="w-4 h-4 text-cyan-400" />
               <span>Query Textbooks (RAG)</span>
@@ -188,7 +188,7 @@ export default function LandingPage() {
 
             <Link
               href="/dashboard"
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-200 font-semibold text-sm transition-all"
+              className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-200 font-semibold text-sm transition-all"
             >
               <BarChart3 className="w-4 h-4 text-blue-400" />
               <span>Learning Hub</span>

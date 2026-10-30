@@ -95,18 +95,18 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#030712] text-slate-200">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-        <div className="border-b border-white/10 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <main className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
+        <div className="border-b border-white/10 pb-5 sm:pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 <Activity className="w-5 h-5" />
               </span>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 Administration & Open-Source URL Connectivity
               </h1>
             </div>
-            <p className="text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-slate-400">
               Direct URL API connectivity to open-source AI models and GPU inference clusters. Zero proprietary API keys required.
             </p>
           </div>
@@ -114,7 +114,7 @@ export default function AdminPage() {
           <button
             onClick={handlePingHealth}
             disabled={pinging}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition-colors"
+            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition-colors w-full sm:w-auto"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${pinging ? "animate-spin" : ""}`} />
             <span>Health Ping</span>
@@ -122,7 +122,7 @@ export default function AdminPage() {
         </div>
 
         {/* 4 Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
               <span>URL API Status</span>
@@ -179,41 +179,41 @@ export default function AdminPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <button
               type="button"
-              onClick={() => setPresetUrl("https://text.pollinations.ai/openai", "openai")}
+              onClick={() => setPresetUrl("https://text.pollinations.ai", "openai-fast")}
               className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                inferenceBaseUrl === "https://text.pollinations.ai/openai"
+                inferenceBaseUrl === "https://text.pollinations.ai" || inferenceBaseUrl.includes("pollinations")
                   ? "bg-blue-600/30 border-cyan-400 text-white font-medium"
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
             >
-              <div className="font-semibold text-cyan-300">Public Open Cluster (Free)</div>
-              <div className="text-[11px] text-slate-400 truncate mt-0.5">https://text.pollinations.ai/openai</div>
+              <div className="font-semibold text-cyan-300">Public Open Cloud (Free)</div>
+              <div className="text-[11px] text-slate-400 truncate mt-0.5">https://text.pollinations.ai</div>
             </button>
 
             <button
               type="button"
-              onClick={() => setPresetUrl("http://localhost:11434/v1", "ollama-local")}
+              onClick={() => setPresetUrl("https://api.groq.com/openai/v1", "meta-llama/Llama-3.3-70B-Instruct")}
               className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                inferenceBaseUrl.includes("11434")
+                inferenceBaseUrl.includes("groq")
                   ? "bg-blue-600/30 border-cyan-400 text-white font-medium"
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
             >
-              <div className="font-semibold text-emerald-300">Local Ollama URL</div>
-              <div className="text-[11px] text-slate-400 truncate mt-0.5">http://localhost:11434/v1</div>
+              <div className="font-semibold text-emerald-300">Groq High-Speed Cloud</div>
+              <div className="text-[11px] text-slate-400 truncate mt-0.5">https://api.groq.com/openai/v1</div>
             </button>
 
             <button
               type="button"
-              onClick={() => setPresetUrl("http://localhost:8000/v1", "vllm-local-cluster")}
+              onClick={() => setPresetUrl("https://openrouter.ai/api/v1", "Qwen/Qwen2.5-72B-Instruct")}
               className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                inferenceBaseUrl.includes("8000")
+                inferenceBaseUrl.includes("openrouter")
                   ? "bg-blue-600/30 border-cyan-400 text-white font-medium"
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
             >
-              <div className="font-semibold text-purple-300">Self-Hosted vLLM Server</div>
-              <div className="text-[11px] text-slate-400 truncate mt-0.5">http://localhost:8000/v1</div>
+              <div className="font-semibold text-purple-300">OpenRouter Cloud</div>
+              <div className="text-[11px] text-slate-400 truncate mt-0.5">https://openrouter.ai/api/v1</div>
             </button>
           </div>
         </div>
@@ -224,15 +224,15 @@ export default function AdminPage() {
             <div>
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-blue-400" />
-                <span>Model Server & URL API Settings</span>
+                <span>Cloud Model Server & URL API Settings</span>
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
-                Switch endpoint URLs, configure sampling temperatures, and adjust context limits dynamically.
+                Switch endpoint URLs, configure sampling temperatures, and adjust context limits dynamically for Vercel deployment.
               </p>
             </div>
 
             <span className="text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/20 px-2.5 py-1 rounded-full">
-              Live URL Connection
+              Live Cloud Connection
             </span>
           </div>
 
@@ -246,14 +246,13 @@ export default function AdminPage() {
                   onChange={(e) => setActiveModel(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
                 >
-                  <option value="openai">Open-Source Fast Cluster (Pollinations - Free)</option>
+                  <option value="openai-fast">GPT-OSS 20B High-Speed Reasoning (Online Cloud API)</option>
+                  <option value="openai">GPT-4o Open Cloud Cluster (Online Cloud API)</option>
                   <option value="Qwen/Qwen2.5-72B-Instruct">Qwen 2.5 72B Instruct (Deep Mathematics & STEM)</option>
                   <option value="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B">DeepSeek-R1 Distill (Reasoning & Proofs)</option>
                   <option value="deepseek-ai/DeepSeek-V3">DeepSeek-V3 671B MoE (Coding & Systems)</option>
                   <option value="google/gemma-2-27b-it">Gemma 2 27B Instruct (Fast Socratic)</option>
                   <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B Instruct (Humanities & Research)</option>
-                  <option value="vllm-local-cluster">Self-Hosted vLLM GPU Cluster (Local / On-Prem)</option>
-                  <option value="ollama-local">Local Ollama Model Instance</option>
                 </select>
                 <p className="text-[11px] text-slate-500">
                   Target model name sent to the configured inference URL.
@@ -267,12 +266,12 @@ export default function AdminPage() {
                   type="text"
                   value={inferenceBaseUrl}
                   onChange={(e) => setInferenceBaseUrl(e.target.value)}
-                  placeholder="e.g. https://text.pollinations.ai/openai or http://localhost:8000/v1"
+                  placeholder="e.g. https://text.pollinations.ai or https://api.groq.com/openai/v1"
                   className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
                   required
                 />
                 <p className="text-[11px] text-slate-500">
-                  Direct HTTP/SSE endpoint for model communication.
+                  Direct HTTP/SSE endpoint for model communication (100% Vercel compatible).
                 </p>
               </div>
 

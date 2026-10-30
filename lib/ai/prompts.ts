@@ -53,28 +53,41 @@ export function buildSystemPrompt(params: {
   let modeInstruction = "";
   switch (mode) {
     case "QUICK_ANSWER":
-      modeInstruction = `MODE: QUICK ANSWER (INSTANT & PRECISE)
+      modeInstruction = `MODE: QUICK ANSWER (FAST, DIRECT & GOOGLE-GROUNDED - FAST ENGINE)
 - Deliver an instant, authoritative, and direct answer.
-- Prioritize high clarity and concise phrasing.
-- Put the core conclusion immediately in the :::answer block, followed by 2-4 structured bullet points summarizing key facts or steps.
+- Prioritize high clarity, factual accuracy, and immediate comprehension.
+- Put the core conclusion immediately in the :::answer block, followed by 2-4 structured bullet points summarizing key facts, definitions, or steps.
+- Directly incorporate fresh Google search findings where relevant.
 - Avoid preamble, fluff, or filler phrases.`;
       break;
 
     case "THINKING":
-      modeInstruction = `MODE: THINKING (DEEP REASONING & DERIVATIONS - GEMINI LEVEL)
-- Perform deep, structured reasoning with mathematical and conceptual rigor.
-- Formulate complete step-by-step derivations: state initial principles, define variables, show intermediate algebraic operations, and verify boundary conditions.
-- For programming questions, provide complete, robust, executable code with clean comments, complexity analysis (Time & Space), and edge case handling.
-- Structure explanations with clear Markdown headers (e.g. ### Mathematical Proof, ### Implementation, ### Complexity Analysis).
+      modeInstruction = `MODE: THINKING (DEEP ANSWERING & RIGOROUS ANALYSIS - POWERED BY GPT 120B OSS)
+- You must perform an exhaustive, DEEP ANSWERING of the user's inquiry from first principles.
+- Do NOT provide a brief or surface-level summary. Deconstruct the underlying mechanics, physical laws, mathematical axioms, or computational systems.
+- For mathematical/scientific questions: formulate complete, step-by-step rigorous derivations with LaTeX notation ($...$ and $$...$$). Explain the "why" and "how" behind every calculation step and evaluate boundary conditions.
+- For coding/algorithms: provide full production-grade code with TypeScript/Python types, comprehensive time and space complexity ($O(n)$ analysis), edge cases, and unit verification.
+- Structure explanations with rich pedagogical sections:
+  ### Deep Conceptual Foundations & Theoretical Principles
+  ### Step-by-Step Rigorous Analysis & Mechanics
+  ### Practical Implementation & Edge Cases
+  ### Comprehensive Takeaways & Exam Mastery Notes
 - Under NO circumstances output internal scratchpads or "Thinking Process:" traces. Present only the structured, polished pedagogical output.`;
       break;
 
     case "DEEP_SEARCH":
-      modeInstruction = `MODE: DEEP SEARCH (GOOGLE & LIVE WEB SYNTHESIS)
-- Ground your answer in the real-time Google & live web research retrieved below.
-- Synthesize findings into an authoritative, up-to-date briefing.
-- Explicitly cite verified sources with clickable Markdown links: e.g. [NobelPrize.org](https://www.nobelprize.org) or [Wikipedia](https://en.wikipedia.org).
-- Clearly separate verified current facts from general background theory.`;
+      modeInstruction = `MODE: DEEP SEARCH (FULL RESEARCH DOSSIER & LITERATURE SYNTHESIS - POWERED BY GPT 120B OSS & GOOGLE SEARCH)
+- Deliver a comprehensive academic research paper / full research dossier on the prompt.
+- Ground your analysis deeply in the multi-angle Google & live web research retrieved below.
+- Synthesize all retrieved sources into an authoritative, deeply referenced research briefing.
+- Provide comprehensive coverage: historical foundations, contemporary breakthroughs, multi-perspective scholarly debates, and official findings.
+- Explicitly cite real sources with verified links: e.g. [Source Name](https://...).
+- Structure into an exhaustive research paper format:
+  ### 1. Executive Research Summary & Definitive Findings
+  ### 2. Multi-Source Literature & Real-Time Web Synthesis
+  ### 3. Systematic Deep-Dive & Methodological Breakdown
+  ### 4. Comparative Academic Analysis & Current Developments
+  ### 5. Verified Source Bibliography & Knowledge Matrix`;
       break;
   }
 

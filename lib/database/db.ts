@@ -178,16 +178,16 @@ const DEFAULT_USER: User = {
   createdAt: new Date().toISOString(),
 };
 
-// URL API connectivity to open-source inference endpoints (No API key required)
+// 100% Online URL API connectivity for seamless Vercel deployment (Zero local dependencies)
 const DEFAULT_CONFIG: SystemConfig = {
-  activeModel: process.env.INFERENCE_MODEL || "gemma3:4b",
-  inferenceBaseUrl: process.env.INFERENCE_BASE_URL || "http://localhost:11434/v1",
+  activeModel: process.env.INFERENCE_MODEL || "openai-fast",
+  inferenceBaseUrl: process.env.INFERENCE_BASE_URL || "https://text.pollinations.ai",
   hasApiKey: false,
   contextLength: 32768,
   maxOutputTokens: 4096,
   temperature: 0.2,
   topP: 0.9,
-  fallbackModel: "openai-fast",
+  fallbackModel: "openai",
   isHealthy: true,
   lastHealthCheck: new Date().toISOString(),
 };
@@ -627,12 +627,36 @@ export async function deleteStudyMaterial(id: string) {
 // System Config operations
 export async function getSystemConfig(): Promise<SystemConfig> {
   const db = loadDB();
+  if (!db.systemConfig) {
+    db.systemConfig = { ...DEFAULT_CONFIG };
+    saveDB();
+  }
+  // Sanitize any residual localhost/11434 endpoints to online URL
+  if (
+    db.systemConfig.inferenceBaseUrl &&
+    (db.systemConfig.inferenceBaseUrl.includes("localhost") ||
+      db.systemConfig.inferenceBaseUrl.includes("127.0.0.1") ||
+      db.systemConfig.inferenceBaseUrl.includes("11434"))
+  ) {
+    db.systemConfig.inferenceBaseUrl = "https://text.pollinations.ai";
+    db.systemConfig.activeModel = "openai-fast";
+    saveDB();
+  }
   return db.systemConfig;
 }
 
 export async function updateSystemConfig(updates: Partial<SystemConfig>): Promise<SystemConfig> {
   const db = loadDB();
-  db.systemConfig = { ...db.systemConfig, ...updates, lastHealthCheck: new Date().toISOString() };
+  const sanitizedUpdates = { ...updates };
+  if (
+    sanitizedUpdates.inferenceBaseUrl &&
+    (sanitizedUpdates.inferenceBaseUrl.includes("localhost") ||
+      sanitizedUpdates.inferenceBaseUrl.includes("127.0.0.1") ||
+      sanitizedUpdates.inferenceBaseUrl.includes("11434"))
+  ) {
+    sanitizedUpdates.inferenceBaseUrl = "https://text.pollinations.ai";
+  }
+  db.systemConfig = { ...db.systemConfig, ...sanitizedUpdates, lastHealthCheck: new Date().toISOString() };
   saveDB();
   return db.systemConfig;
 }

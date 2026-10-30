@@ -8,7 +8,7 @@ import { ChatComposer } from "@/components/chat/ChatComposer";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
 import { Conversation, Document, Message } from "@/lib/database/db";
 import { ResponseMode } from "@/lib/ai/prompts";
-import { Download, Trash2, Zap, Brain, Globe } from "lucide-react";
+import { Download, Trash2, Zap, Brain, Globe, PanelLeft, Plus } from "lucide-react";
 
 export default function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -19,6 +19,7 @@ export default function ChatPage() {
   const [currentMode, setCurrentMode] = useState<ResponseMode>("QUICK_ANSWER");
   const [availableDocuments, setAvailableDocuments] = useState<Document[]>([]);
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([]);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const isSubmittingRef = useRef(false);
   const justCreatedConvIdRef = useRef<string | null>(null);
@@ -137,6 +138,7 @@ export default function ChatPage() {
   const handleSendMessage = async (
     text: string,
     attachments?: { type: string; data: string; name: string }[],
+    modelOverride?: string,
     isRegeneration = false
   ) => {
     if (!text.trim() || isStreaming || isSubmittingRef.current) return;
@@ -185,6 +187,7 @@ export default function ChatPage() {
           conversationId: activeConversationId,
           prompt: text,
           mode: currentMode,
+          model: modelOverride && modelOverride !== "auto" ? modelOverride : undefined,
           documentIds: selectedDocumentIds,
           regenerate: isRegeneration,
           requestId,
@@ -213,6 +216,8 @@ export default function ChatPage() {
         }
       }
 
+      const returnedModelUsed = response.headers.get("X-Model-Used") || "EXAM MIND AI";
+
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let streamedContent = "";
@@ -231,6 +236,7 @@ export default function ChatPage() {
                 ? {
                     ...msg,
                     content: streamedContent,
+                    modelUsed: returnedModelUsed,
                     citations: parsedCitations.length > 0 ? parsedCitations : undefined,
                   }
                 : msg
@@ -281,7 +287,7 @@ export default function ChatPage() {
     setMessages((prev) => prev.filter((_, idx) => idx !== assistantIdx));
 
     // Re-issue with regenerate flag
-    handleSendMessage(priorUser.content, undefined, true);
+    handleSendMessage(priorUser.content, undefined, undefined, true);
   };
 
   const handleStopStreaming = () => {
@@ -318,26 +324,74 @@ export default function ChatPage() {
       <Navbar />
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Left Sidebar */}
+        {/* Left Sidebar (Desktop persistent + Mobile overlay) */}
         <ChatSidebar
           conversations={conversations}
           activeId={activeConversationId}
-          onSelect={(id) => setActiveConversationId(id)}
+          onSelect={(id) => {
+            setActiveConversationId(id);
+            setMobileSidebarOpen(false);
+          }}
           onNewChat={handleNewChat}
           onDelete={handleDeleteConversation}
           onTogglePin={handleTogglePin}
           selectedMode={currentMode}
           onSelectMode={(m) => setCurrentMode(m as ResponseMode)}
+          isOpenMobile={mobileSidebarOpen}
+          onCloseMobile={() => setMobileSidebarOpen(false)}
         />
 
         {/* Main Conversation Canvas */}
-        <main className="flex-1 flex flex-col bg-[#030712] relative overflow-hidden bg-grid-pattern">
+        <main className="flex-1 flex flex-col bg-[#030712] relative overflow-hidden bg-grid-pattern w-full min-w-0">
           {/* Radiant Background Ambient Glow */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] radiant-glow pointer-events-none opacity-40" />
 
-          {/* Top Bar for active session */}
+          {/* Mobile Top Bar */}
+          <div className="flex md:hidden items-center justify-between px-3 py-2 border-b border-white/[0.08] bg-[#050b18]/90 backdrop-blur-md z-20 text-xs">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 font-medium active:scale-95 transition-all"
+            >
+              <PanelLeft className="w-4 h-4 text-cyan-400" />
+              <span>Sessions</span>
+              {conversations.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-cyan-950 text-cyan-300 font-mono text-[10px] border border-cyan-500/30">
+                  {conversations.length}
+                </span>
+              )}
+            </button>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/20 px-2 py-1 rounded flex items-center gap-1">
+                {currentMode === "QUICK_ANSWER" && <Zap className="w-3 h-3 text-cyan-400" />}
+                {currentMode === "THINKING" && <Brain className="w-3 h-3 text-cyan-400" />}
+                {currentMode === "DEEP_SEARCH" && <Globe className="w-3 h-3 text-cyan-400" />}
+                <span className="max-w-[70px] truncate">{currentMode.replace(/_/g, " ")}</span>
+              </span>
+
+              {messages.length > 0 && (
+                <button
+                  onClick={handleExportChat}
+                  className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-slate-300 hover:text-white"
+                  title="Export"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </button>
+              )}
+
+              <button
+                onClick={handleNewChat}
+                className="p-1.5 rounded-lg bg-blue-600/30 text-cyan-300 border border-blue-500/40 hover:bg-blue-600/50"
+                title="New session"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Desktop Top Bar for active session */}
           {messages.length > 0 && (
-            <div className="flex items-center justify-between px-6 py-2.5 border-b border-white/[0.06] bg-[#050b18]/70 backdrop-blur-md z-10 text-xs">
+            <div className="hidden md:flex items-center justify-between px-6 py-2.5 border-b border-white/[0.06] bg-[#050b18]/70 backdrop-blur-md z-10 text-xs">
               <div className="flex items-center gap-3">
                 <span className="font-semibold text-white truncate max-w-sm">
                   {conversations.find((c) => c.id === activeConversationId)?.title ||

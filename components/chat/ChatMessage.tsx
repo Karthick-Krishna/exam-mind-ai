@@ -127,7 +127,9 @@ export function ChatMessage({
     ? extractHighlightedAnswer(message.content)
     : { highlightedAnswer: null, remainingContent: message.content };
 
-  const isMessageStreaming = isAssistant && isStreaming && (!message.content || !message.content.includes(":::"));
+  const isCurrentlyStreaming = isAssistant && isStreaming;
+  const isHighlightedStreaming = isCurrentlyStreaming && !remainingContent;
+  const isRemainingStreaming = isCurrentlyStreaming && Boolean(remainingContent);
 
   const suggestions =
     isAssistant && message.content.length > 50
@@ -140,28 +142,28 @@ export function ChatMessage({
 
   return (
     <div
-      className={`py-6 px-4 md:px-8 transition-colors ${
+      className={`py-3.5 sm:py-6 px-3 sm:px-6 md:px-8 transition-colors ${
         isAssistant ? "bg-[#040916]/50 border-y border-white/[0.04]" : "bg-transparent"
       }`}
     >
-      <div className="max-w-4xl mx-auto flex gap-4 md:gap-5 items-start">
+      <div className="max-w-4xl mx-auto flex gap-2.5 sm:gap-4 md:gap-5 items-start">
         {/* Avatar */}
         <div className="flex-shrink-0 mt-0.5">
           {isAssistant ? (
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[1px] shadow-md shadow-blue-500/20">
-              <div className="w-full h-full bg-[#050b14] rounded-[11px] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-cyan-300" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[1px] shadow-md shadow-blue-500/20">
+              <div className="w-full h-full bg-[#050b14] rounded-[7px] sm:rounded-[11px] flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" />
               </div>
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-slate-300">
-              <User className="w-4 h-4" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-slate-300">
+              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
           )}
         </div>
 
         {/* Message Content Container */}
-        <div className="flex-1 min-w-0 space-y-3">
+        <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3">
           {/* Header row */}
           <div className="flex items-center justify-between text-xs">
             <div className="flex items-center gap-2">
@@ -270,19 +272,22 @@ export function ChatMessage({
           )}
 
           {/* Animated Thinking Indicator when waiting for first token */}
-          {isAssistant && !message.content && isStreaming && (
+          {isAssistant && !highlightedAnswer && !remainingContent && isStreaming && (
             <ThinkingIndicator mode={mode} />
           )}
 
           {/* Dedicated Highlighted Answer Card */}
-          {isAssistant && highlightedAnswer && (
-            <HighlightedAnswer answerText={highlightedAnswer} isStreaming={isMessageStreaming} />
+          {isAssistant && highlightedAnswer !== null && (
+            <HighlightedAnswer answerText={highlightedAnswer} isStreaming={isHighlightedStreaming} />
           )}
 
-          {/* Supporting Markdown Explanation & Content */}
+          {/* Supporting Markdown Explanation & Content with Live Typing Animation */}
           {remainingContent && (
-            <div className="text-slate-200 leading-relaxed">
+            <div className="text-slate-200 leading-relaxed relative">
               <MarkdownRenderer content={remainingContent} />
+              {isRemainingStreaming && (
+                <span className="inline-block w-2 h-4 bg-cyan-400 rounded-sm animate-pulse ml-1.5 align-middle shadow-[0_0_8px_rgba(34,211,238,0.9)]" />
+              )}
             </div>
           )}
 
