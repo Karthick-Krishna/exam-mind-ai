@@ -1,0 +1,180 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STUDENT
+  EDUCATOR
+  RESEARCHER
+  ADMIN
+}
+
+enum AcademicLevel {
+  PRIMARY
+  SECONDARY
+  HIGHER_SECONDARY
+  DIPLOMA
+  UNDERGRADUATE
+  POSTGRADUATE
+  RESEARCH
+}
+
+enum TeachingMode {
+  SIMPLE_EXPLANATION
+  DETAILED_EXPLANATION
+  COLLEGE_EXAM_MODE
+  STEP_BY_STEP_SOLVER
+  SOCRATIC_TUTOR
+  QUICK_ANSWER
+  RESEARCH_MODE
+  BEGINNER_MODE
+  ADVANCED_MODE
+}
+
+model User {
+  id               String            @id @default(uuid())
+  email            String            @unique
+  name             String
+  avatar           String?
+  role             Role              @default(STUDENT)
+  academicLevel    AcademicLevel     @default(UNDERGRADUATE)
+  learningGoals    String?
+  preferredSubject String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  conversations    Conversation[]
+  documents        Document[]
+  quizzes          Quiz[]
+  quizAttempts     QuizAttempt[]
+  learningProgress LearningProgress[]
+  studyMaterials   StudyMaterial[]
+}
+
+model Conversation {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  category      String?       @default("General Academic")
+  teachingMode  TeachingMode  @default(DETAILED_EXPLANATION)
+  academicLevel AcademicLevel @default(UNDERGRADUATE)
+  isPinned      Boolean       @default(false)
+  isArchived    Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  messages      Message[]
+}
+
+model Message {
+  id             String        @id @default(uuid())
+  conversationId String
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String        // "user" | "assistant" | "system"
+  content        String
+  reasoningSteps String?       // JSON string of thinking steps
+  citations      String?       // JSON string of [{ docName, page, text }]
+  feedback       String?       // "LIKE" | "DISLIKE" | null
+  tokensUsed     Int?          @default(0)
+  modelUsed      String?
+  createdAt      DateTime      @default(now())
+}
+
+model Document {
+  id          String          @id @default(uuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  fileType    String          // "pdf", "docx", "txt", "md"
+  fileSize    Int
+  url         String?
+  pageCount   Int             @default(1)
+  status      String          @default("READY") // "PROCESSING", "READY", "ERROR"
+  createdAt   DateTime        @default(now())
+
+  chunks      DocumentChunk[]
+}
+
+model DocumentChunk {
+  id           String    @id @default(uuid())
+  documentId   String
+  document     Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  chunkIndex   Int
+  pageNumber   Int       @default(1)
+  sectionTitle String?
+  content      String
+  embedding    String?   // Vector coordinates stored as serialized JSON array or pgvector
+  createdAt    DateTime  @default(now())
+}
+
+model Quiz {
+  id               String        @id @default(uuid())
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title            String
+  subject          String
+  topic            String
+  difficulty       String        // "Easy", "Medium", "Hard", "Olympiad"
+  academicLevel    AcademicLevel @default(UNDERGRADUATE)
+  timeLimitMinutes Int           @default(15)
+  questions        String        // JSON array of question objects
+  sourceDocumentId String?
+  createdAt        DateTime      @default(now())
+
+  attempts         QuizAttempt[]
+}
+
+model QuizAttempt {
+  id               String    @id @default(uuid())
+  quizId           String
+  quiz             Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score            Float
+  maxScore         Float
+  timeTakenSeconds Int
+  answers          String    // JSON array of student selections & grading
+  analysis         String?   // JSON object with weak/strong topics
+  completedAt      DateTime  @default(now())
+}
+
+model LearningProgress {
+  id                String    @id @default(uuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject           String
+  topic             String
+  masteryLevel      Int       @default(0) // 0 - 100
+  questionsAnswered Int       @default(0)
+  streakDays        Int       @default(1)
+  lastActiveAt      DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([userId, subject, topic])
+}
+
+model StudyMaterial {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  type      String   // "NOTES" | "FLASHCARDS" | "REVISION" | "MINDMAP" | "FORMULASHEET"
+  subject   String
+  content   String   // Markdown or JSON string
+  createdAt DateTime @default(now())
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   // JSON string configuration
+  updatedAt DateTime @updatedAt
+}
