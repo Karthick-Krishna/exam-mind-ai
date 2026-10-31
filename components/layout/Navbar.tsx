@@ -28,22 +28,24 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/[0.08] bg-[#030712]/90 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 h-13 sm:h-16 flex items-center justify-between">
         {/* Brand Crest */}
-        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group">
-          <div className="relative flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[1px] shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all flex-shrink-0">
-            <div className="w-full h-full bg-[#050b14] rounded-[11px] flex items-center justify-center">
-              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300 group-hover:scale-110 transition-transform" />
-            </div>
+        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
+          <div className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl overflow-hidden bg-black border border-white/10 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all flex-shrink-0">
+            <img
+              src="/logo.png"
+              alt="EXAM MIND AI Logo"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+            />
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold tracking-tight text-white text-sm sm:text-base">EXAM MIND</span>
-              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-widest text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-1.5 py-0.2 rounded">
+          <div className="flex flex-col min-w-0">
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              <span className="font-bold tracking-tight text-white text-xs sm:text-base truncate">EXAM MIND</span>
+              <span className="text-[9px] sm:text-[10px] uppercase font-mono tracking-widest text-cyan-400 bg-cyan-950/60 border border-cyan-500/30 px-1 py-0.2 rounded flex-shrink-0">
                 AI
               </span>
             </div>
-            <span className="text-[10px] sm:text-[11px] text-slate-400 tracking-wide hidden min-[400px]:inline truncate">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 tracking-wide hidden min-[540px]:inline truncate">
               Universal Academic Intelligence
             </span>
           </div>
@@ -94,11 +96,11 @@ export function Navbar() {
         </div>
 
         {/* Mobile menu button */}
-        <div className="flex lg:hidden items-center gap-2">
+        <div className="flex lg:hidden items-center gap-1.5">
           {pathname !== "/chat" && (
             <Link
               href="/chat"
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600 text-white font-medium text-xs shadow-md"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-600 text-white font-medium text-xs shadow-md active:scale-95"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Chat</span>
@@ -107,17 +109,17 @@ export function Navbar() {
 
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 border border-white/10"
+            className="p-1.5 sm:p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 border border-white/10 active:scale-95 transition-transform"
             aria-label="Toggle navigation menu"
           >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {mobileMenuOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
         </div>
       </div>
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-white/10 bg-[#060d1a]/95 backdrop-blur-2xl px-4 pt-3 pb-5 space-y-2 animate-in slide-in-from-top duration-200">
+        <div className="lg:hidden border-b border-white/10 bg-[#060d1a]/95 backdrop-blur-2xl px-3 sm:px-4 pt-3 pb-safe space-y-2 max-h-[calc(100dvh-3.5rem)] overflow-y-auto animate-in slide-in-from-top duration-200">
           <div className="space-y-1">
             {navLinks.map((item) => {
               const Icon = item.icon;

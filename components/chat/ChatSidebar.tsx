@@ -82,13 +82,13 @@ export function ChatSidebar({
 
         {/* Search */}
         <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5 sm:top-2.5" />
           <input
             type="text"
             placeholder="Search discussions..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-slate-900/60 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
+            className="w-full pl-8 pr-3 py-2 sm:py-1.5 rounded-lg bg-slate-900/60 border border-white/10 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
       </div>
@@ -154,7 +154,7 @@ export function ChatSidebar({
       </div>
 
       {/* Bottom Info */}
-      <div className="p-3 border-t border-white/[0.08] bg-slate-950/40 text-xs space-y-2">
+      <div className="p-3 pb-safe border-t border-white/[0.08] bg-slate-950/40 text-xs space-y-2">
         <div className="flex items-center justify-between text-slate-400 px-1">
           <span className="text-[11px]">Active Mode</span>
           <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-500/20">
@@ -183,7 +183,7 @@ export function ChatSidebar({
           />
 
           {/* Drawer Body */}
-          <aside className="relative w-4/5 max-w-xs h-full bg-[#040814] border-r border-white/10 z-10 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left duration-200">
+          <aside className="relative w-4/5 max-w-xs h-[100dvh] bg-[#040814] border-r border-white/10 z-10 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left duration-200 pb-safe">
             {sidebarContent}
           </aside>
         </div>

@@ -9,7 +9,44 @@ export interface RetrievedChunkResult {
 }
 
 /**
- * Retrieve the most relevant educational passages for a query using hybrid search
+ * Determines whether RAG retrieval should be activated for a query.
+ * 
+ * Rules:
+ * 1. If user explicitly selected documents (documentIds.length > 0) -> true.
+ * 2. If query explicitly references uploaded documents, textbooks, or course files -> true.
+ * 3. General questions (e.g. "What is photosynthesis?", "Who is the Chief Minister of Tamil Nadu?")
+ *    do NOT query or inject RAG by default, preventing irrelevant document hallucination.
+ */
+export function shouldPerformRag(query: string, documentIds?: string[]): boolean {
+  if (documentIds && documentIds.length > 0) return true;
+
+  const lower = (query || "").toLowerCase();
+  const docRefKeywords = [
+    "uploaded",
+    "document",
+    "in my notes",
+    "in the notes",
+    "textbook",
+    "in the pdf",
+    "from the pdf",
+    "according to the book",
+    "course material",
+    "syllabus",
+    "page number",
+    "in chapter",
+    "lecture notes",
+  ];
+
+  for (const kw of docRefKeywords) {
+    if (lower.includes(kw)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Retrieve the most relevant educational passages for a query using hybrid search.
+ * Enforces a strict relevance score threshold to avoid polluting prompts with irrelevant documents.
  */
 export async function retrieveRelevantPassages(
   query: string,
@@ -34,7 +71,7 @@ export async function retrieveRelevantPassages(
 
   for (const chunk of chunks) {
     const docName = docMap.get(chunk.documentId) || "Course Material";
-    
+
     // 1. Vector cosine similarity
     const vecScore = chunk.embedding ? cosineSimilarity(queryEmbedding, chunk.embedding) : 0.5;
 
@@ -51,11 +88,15 @@ export async function retrieveRelevantPassages(
     // 3. Hybrid weighted score
     const finalScore = 0.65 * vecScore + 0.35 * lexicalScore;
 
-    scored.push({
-      chunk,
-      score: finalScore,
-      docName,
-    });
+    // Strict relevance threshold to prevent injecting irrelevant texts
+    const minThreshold = documentIds && documentIds.length > 0 ? 0.55 : 0.68;
+    if (finalScore >= minThreshold) {
+      scored.push({
+        chunk,
+        score: finalScore,
+        docName,
+      });
+    }
   }
 
   // Sort descending by relevance

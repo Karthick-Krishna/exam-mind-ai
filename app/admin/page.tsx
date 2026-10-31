@@ -8,11 +8,15 @@ import {
   Zap,
   Sliders,
   CheckCircle2,
+  XCircle,
   RefreshCw,
   Save,
   Clock,
   Globe,
-  Radio
+  Radio,
+  Cpu,
+  ShieldCheck,
+  Brain
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -20,14 +24,21 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [pinging, setPinging] = useState(false);
+  const [testingModel, setTestingModel] = useState<string | null>(null);
 
-  // Form parameters
-  const [activeModel, setActiveModel] = useState("openai");
-  const [inferenceBaseUrl, setInferenceBaseUrl] = useState("https://text.pollinations.ai/openai");
+  // Dual Model Parameters (Requirement 1 & 12)
+  const [gptOssBaseUrl, setGptOssBaseUrl] = useState("https://text.pollinations.ai");
+  const [gptOssModel, setGptOssModel] = useState("openai-fast");
+  const [gptOssApiKey, setGptOssApiKey] = useState("");
+
+  const [qwenBaseUrl, setQwenBaseUrl] = useState("https://text.pollinations.ai");
+  const [qwenModel, setQwenModel] = useState("qwen-coder");
+  const [qwenApiKey, setQwenApiKey] = useState("");
+
+  const [searchProviderUrl, setSearchProviderUrl] = useState("");
   const [temperature, setTemperature] = useState(0.2);
   const [topP, setTopP] = useState(0.9);
   const [maxOutputTokens, setMaxOutputTokens] = useState(4096);
-  const [fallbackModel, setFallbackModel] = useState("Qwen/Qwen2.5-72B-Instruct");
 
   useEffect(() => {
     fetchAdminData();
@@ -40,16 +51,22 @@ export default function AdminPage() {
         const json = await res.json();
         setData(json);
         if (json.config) {
-          setActiveModel(json.config.activeModel || "openai");
-          setInferenceBaseUrl(json.config.inferenceBaseUrl || "https://text.pollinations.ai/openai");
+          setGptOssBaseUrl(json.config.gptOssBaseUrl || json.config.inferenceBaseUrl || "https://text.pollinations.ai");
+          setGptOssModel(json.config.gptOssModel || "openai-fast");
+          setGptOssApiKey(json.config.gptOssApiKey || "");
+
+          setQwenBaseUrl(json.config.qwenBaseUrl || json.config.inferenceBaseUrl || "https://text.pollinations.ai");
+          setQwenModel(json.config.qwenModel || "qwen-coder");
+          setQwenApiKey(json.config.qwenApiKey || "");
+
+          setSearchProviderUrl(json.config.searchProviderUrl || "");
           setTemperature(json.config.temperature ?? 0.2);
           setTopP(json.config.topP ?? 0.9);
           setMaxOutputTokens(json.config.maxOutputTokens ?? 4096);
-          setFallbackModel(json.config.fallbackModel || "Qwen/Qwen2.5-72B-Instruct");
         }
       }
     } catch (e) {
-      console.error(e);
+      console.error("Failed to load admin data:", e);
     } finally {
       setLoading(false);
     }
@@ -61,6 +78,34 @@ export default function AdminPage() {
     setPinging(false);
   };
 
+  const handleTestSpecificModel = async (backend: "gpt-oss" | "qwen") => {
+    setTestingModel(backend);
+    try {
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "test",
+          backend,
+          baseUrl: backend === "gpt-oss" ? gptOssBaseUrl : qwenBaseUrl,
+          model: backend === "gpt-oss" ? gptOssModel : qwenModel,
+          apiKey: backend === "gpt-oss" ? gptOssApiKey : qwenApiKey,
+        }),
+      });
+      if (res.ok) {
+        const json = await res.json();
+        setData((prev: any) => ({
+          ...prev,
+          [backend === "gpt-oss" ? "gptOssTest" : "qwenTest"]: json.testResult,
+        }));
+      }
+    } catch (e) {
+      console.error(`Error testing ${backend}:`, e);
+    } finally {
+      setTestingModel(null);
+    }
+  };
+
   const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -70,15 +115,21 @@ export default function AdminPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          activeModel,
-          inferenceBaseUrl,
+          gptOssBaseUrl,
+          gptOssModel,
+          gptOssApiKey,
+          qwenBaseUrl,
+          qwenModel,
+          qwenApiKey,
+          searchProviderUrl,
           temperature: Number(temperature),
           topP: Number(topP),
           maxOutputTokens: Number(maxOutputTokens),
-          fallbackModel,
+          inferenceBaseUrl: gptOssBaseUrl,
+          activeModel: gptOssModel,
         }),
       });
-      fetchAdminData();
+      await fetchAdminData();
     } catch (e) {
       console.error(e);
     } finally {
@@ -86,102 +137,153 @@ export default function AdminPage() {
     }
   };
 
-  const setPresetUrl = (url: string, model: string) => {
-    setInferenceBaseUrl(url);
-    setActiveModel(model);
+  const setGlobalPresetUrl = (url: string) => {
+    setGptOssBaseUrl(url);
+    setQwenBaseUrl(url);
   };
+
+  const gptTest = data?.gptOssTest;
+  const qwenTest = data?.qwenTest;
 
   return (
     <div className="min-h-screen bg-[#030712] text-slate-200">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
-        <div className="border-b border-white/10 pb-5 sm:pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <main className="max-w-6xl mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-10 space-y-5 sm:space-y-8">
+        {/* Header Bar */}
+        <div className="border-b border-white/10 pb-4 sm:pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex-shrink-0">
                 <Activity className="w-5 h-5" />
               </span>
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Administration & Open-Source URL Connectivity
+              <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight">
+                Model Orchestration & System Intelligence
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400">
-              Direct URL API connectivity to open-source AI models and GPU inference clusters. Zero proprietary API keys required.
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              Independent inference endpoints for GPT-OSS and Qwen 2.5, multi-source web search, and pgvector RAG.
             </p>
           </div>
 
           <button
             onClick={handlePingHealth}
             disabled={pinging}
-            className="flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition-colors w-full sm:w-auto"
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition-colors w-full sm:w-auto active:scale-95 flex-shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${pinging ? "animate-spin" : ""}`} />
-            <span>Health Ping</span>
+            <span>Health Ping Both Models</span>
           </button>
         </div>
 
-        {/* 4 Stat Cards */}
+        {/* 4 Dual-Model & System Status Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2">
+          {/* Card 1: GPT-OSS Status */}
+          <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2 relative overflow-hidden">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-              <span>URL API Status</span>
-              <Server className="w-4 h-4 text-emerald-400" />
+              <span className="flex items-center gap-1.5 font-bold text-slate-200">
+                <Cpu className="w-3.5 h-3.5 text-cyan-400" />
+                Model 1: GPT-OSS
+              </span>
+              <button
+                type="button"
+                onClick={() => handleTestSpecificModel("gpt-oss")}
+                disabled={testingModel === "gpt-oss"}
+                className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1"
+              >
+                {testingModel === "gpt-oss" ? <RefreshCw className="w-2.5 h-2.5 animate-spin" /> : "Test"}
+              </button>
             </div>
-            <div className="text-2xl font-extrabold text-emerald-400 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5" />
-              <span>Connected</span>
+            <div className="text-xl font-extrabold flex items-center gap-2">
+              {gptTest?.status === "Connected" ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span className="text-emerald-400">Connected</span>
+                </>
+              ) : (
+                <>
+                  <Activity className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+                  <span className="text-cyan-300">{gptTest?.status || "Ready"}</span>
+                </>
+              )}
             </div>
-            <div className="text-[11px] text-slate-400">Direct HTTP/SSE URL Connection</div>
+            <div className="text-[11px] text-slate-400 font-mono truncate">
+              {gptTest?.latencyMs ? `${gptTest.latencyMs}ms latency` : "General Intelligence & Q&A"}
+            </div>
           </div>
 
-          <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2">
+          {/* Card 2: Qwen 2.5 Status */}
+          <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2 relative overflow-hidden">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-              <span>Round-Trip Latency</span>
-              <Clock className="w-4 h-4 text-cyan-400" />
+              <span className="flex items-center gap-1.5 font-bold text-slate-200">
+                <Brain className="w-3.5 h-3.5 text-purple-400" />
+                Model 2: Qwen 2.5
+              </span>
+              <button
+                type="button"
+                onClick={() => handleTestSpecificModel("qwen")}
+                disabled={testingModel === "qwen"}
+                className="text-[10px] text-purple-400 hover:underline flex items-center gap-1"
+              >
+                {testingModel === "qwen" ? <RefreshCw className="w-2.5 h-2.5 animate-spin" /> : "Test"}
+              </button>
             </div>
-            <div className="text-3xl font-extrabold text-white">
-              {data?.health?.latencyMs || 18} <span className="text-base text-slate-400">ms</span>
+            <div className="text-xl font-extrabold flex items-center gap-2">
+              {qwenTest?.status === "Connected" ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span className="text-emerald-400">Connected</span>
+                </>
+              ) : (
+                <>
+                  <Activity className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-purple-300">{qwenTest?.status || "Ready"}</span>
+                </>
+              )}
             </div>
-            <div className="text-[11px] text-emerald-400">High-throughput streaming</div>
+            <div className="text-[11px] text-slate-400 font-mono truncate">
+              {qwenTest?.latencyMs ? `${qwenTest.latencyMs}ms latency` : "Math, Code & STEM Derivations"}
+            </div>
           </div>
 
+          {/* Card 3: Tokens Processed */}
           <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
               <span>Tokens Processed</span>
               <Zap className="w-4 h-4 text-amber-400" />
             </div>
-            <div className="text-3xl font-extrabold text-white">
+            <div className="text-2xl font-extrabold text-white">
               {data?.stats?.totalTokensConsumed.toLocaleString() || "524,190"}
             </div>
-            <div className="text-[11px] text-slate-400">Open-source inference tokens</div>
+            <div className="text-[11px] text-slate-400">Total generated model tokens</div>
           </div>
 
+          {/* Card 4: System Uptime */}
           <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
               <span>System Uptime</span>
-              <Activity className="w-4 h-4 text-blue-400" />
+              <ShieldCheck className="w-4 h-4 text-blue-400" />
             </div>
-            <div className="text-3xl font-extrabold text-white">
+            <div className="text-2xl font-extrabold text-white">
               {data?.stats?.systemUptime || "99.98%"}
             </div>
-            <div className="text-[11px] text-slate-400">Resilient dual-fallback design</div>
+            <div className="text-[11px] text-slate-400">Autonomous dual-fallback guarantee</div>
           </div>
         </div>
 
-        {/* 1-Click URL Presets Bar */}
+        {/* 1-Click Endpoint Presets Bar */}
         <div className="p-4 rounded-2xl border border-blue-500/20 bg-[#050b18] space-y-3">
           <div className="flex items-center gap-2 text-cyan-300 font-semibold text-xs">
             <Radio className="w-4 h-4 text-blue-400" />
-            <span>1-Click Open-Source Endpoint URL Presets (No Keys Needed):</span>
+            <span>1-Click Unified Cluster Presets:</span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             <button
               type="button"
-              onClick={() => setPresetUrl("https://text.pollinations.ai", "openai-fast")}
+              onClick={() => setGlobalPresetUrl("https://text.pollinations.ai")}
               className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                inferenceBaseUrl === "https://text.pollinations.ai" || inferenceBaseUrl.includes("pollinations")
+                gptOssBaseUrl.includes("pollinations")
                   ? "bg-blue-600/30 border-cyan-400 text-white font-medium"
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
@@ -192,9 +294,22 @@ export default function AdminPage() {
 
             <button
               type="button"
-              onClick={() => setPresetUrl("https://api.groq.com/openai/v1", "meta-llama/Llama-3.3-70B-Instruct")}
+              onClick={() => setGlobalPresetUrl("http://localhost:11434/v1")}
               className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                inferenceBaseUrl.includes("groq")
+                gptOssBaseUrl.includes("11434") || gptOssBaseUrl.includes("localhost")
+                  ? "bg-blue-600/30 border-cyan-400 text-white font-medium"
+                  : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
+              }`}
+            >
+              <div className="font-semibold text-amber-300">Local Ollama Cluster</div>
+              <div className="text-[11px] text-slate-400 truncate mt-0.5">http://localhost:11434/v1</div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setGlobalPresetUrl("https://api.groq.com/openai/v1")}
+              className={`p-3 rounded-xl border text-left text-xs transition-all ${
+                gptOssBaseUrl.includes("groq")
                   ? "bg-blue-600/30 border-cyan-400 text-white font-medium"
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
@@ -205,9 +320,9 @@ export default function AdminPage() {
 
             <button
               type="button"
-              onClick={() => setPresetUrl("https://openrouter.ai/api/v1", "Qwen/Qwen2.5-72B-Instruct")}
+              onClick={() => setGlobalPresetUrl("https://openrouter.ai/api/v1")}
               className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                inferenceBaseUrl.includes("openrouter")
+                gptOssBaseUrl.includes("openrouter")
                   ? "bg-blue-600/30 border-cyan-400 text-white font-medium"
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
@@ -219,96 +334,163 @@ export default function AdminPage() {
         </div>
 
         {/* Configuration Form */}
-        <div className="p-6 md:p-8 rounded-2xl border border-white/10 bg-slate-950/70 shadow-2xl space-y-6">
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+        <div className="p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border border-white/10 bg-slate-950/70 shadow-2xl space-y-5 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-white/10 pb-4 gap-2">
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                 <Sliders className="w-4 h-4 text-blue-400" />
-                <span>Cloud Model Server & URL API Settings</span>
+                <span>Model Server & Search Engine Settings</span>
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Switch endpoint URLs, configure sampling temperatures, and adjust context limits dynamically for Vercel deployment.
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+                Configure dedicated OpenAI-compatible endpoints, bearer keys, and search adapters for Vercel deployment.
               </p>
             </div>
 
-            <span className="text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/20 px-2.5 py-1 rounded-full">
-              Live Cloud Connection
+            <span className="text-[11px] sm:text-xs font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-500/20 px-2.5 py-1 rounded-full w-fit">
+              Dual Engine Routing Active
             </span>
           </div>
 
           <form onSubmit={handleSaveConfig} className="space-y-6 text-xs">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Active Model Selector */}
-              <div className="space-y-1.5">
-                <label className="block text-slate-300 font-semibold">Active Open-Source Model</label>
-                <select
-                  value={activeModel}
-                  onChange={(e) => setActiveModel(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
-                >
-                  <option value="openai-fast">GPT-OSS 20B High-Speed Reasoning (Online Cloud API)</option>
-                  <option value="openai">GPT-4o Open Cloud Cluster (Online Cloud API)</option>
-                  <option value="Qwen/Qwen2.5-72B-Instruct">Qwen 2.5 72B Instruct (Deep Mathematics & STEM)</option>
-                  <option value="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B">DeepSeek-R1 Distill (Reasoning & Proofs)</option>
-                  <option value="deepseek-ai/DeepSeek-V3">DeepSeek-V3 671B MoE (Coding & Systems)</option>
-                  <option value="google/gemma-2-27b-it">Gemma 2 27B Instruct (Fast Socratic)</option>
-                  <option value="meta-llama/Llama-3.3-70B-Instruct">Llama 3.3 70B Instruct (Humanities & Research)</option>
-                </select>
-                <p className="text-[11px] text-slate-500">
-                  Target model name sent to the configured inference URL.
-                </p>
+            {/* Section A: Model 1 (GPT-OSS) */}
+            <div className="p-4 rounded-xl border border-white/10 bg-slate-900/40 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <div className="flex items-center gap-2">
+                  <Cpu className="w-4 h-4 text-cyan-400" />
+                  <span className="font-bold text-slate-200">Model 1: GPT-OSS (General Knowledge & Academics)</span>
+                </div>
+                <span className="text-[10px] text-slate-500">Env: GPT_OSS_BASE_URL, GPT_OSS_MODEL, GPT_OSS_API_KEY</span>
               </div>
 
-              {/* Inference Base URL */}
-              <div className="space-y-1.5">
-                <label className="block text-slate-300 font-semibold">Inference Endpoint URL (No Keys Needed)</label>
-                <input
-                  type="text"
-                  value={inferenceBaseUrl}
-                  onChange={(e) => setInferenceBaseUrl(e.target.value)}
-                  placeholder="e.g. https://text.pollinations.ai or https://api.groq.com/openai/v1"
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
-                  required
-                />
-                <p className="text-[11px] text-slate-500">
-                  Direct HTTP/SSE endpoint for model communication (100% Vercel compatible).
-                </p>
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-semibold">Endpoint URL</label>
+                  <input
+                    type="text"
+                    value={gptOssBaseUrl}
+                    onChange={(e) => setGptOssBaseUrl(e.target.value)}
+                    placeholder="https://text.pollinations.ai"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white font-mono text-base sm:text-xs focus:border-cyan-400"
+                  />
+                </div>
 
-              {/* Fallback Model */}
-              <div className="space-y-1.5">
-                <label className="block text-slate-300 font-semibold">Secondary Fallback Model</label>
-                <input
-                  type="text"
-                  value={fallbackModel}
-                  onChange={(e) => setFallbackModel(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-white/10 text-white focus:outline-none focus:border-blue-500 font-mono text-xs"
-                />
-                <p className="text-[11px] text-slate-500">
-                  Automatically activated if the primary model reaches network throttling.
-                </p>
-              </div>
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-semibold">Model ID</label>
+                  <input
+                    type="text"
+                    value={gptOssModel}
+                    onChange={(e) => setGptOssModel(e.target.value)}
+                    placeholder="openai-fast"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white font-mono text-base sm:text-xs focus:border-cyan-400"
+                  />
+                </div>
 
-              {/* Max Output Tokens */}
-              <div className="space-y-1.5">
-                <label className="block text-slate-300 font-semibold">Max Generation Tokens ({maxOutputTokens})</label>
-                <input
-                  type="range"
-                  min={512}
-                  max={8192}
-                  step={256}
-                  value={maxOutputTokens}
-                  onChange={(e) => setMaxOutputTokens(Number(e.target.value))}
-                  className="w-full accent-blue-500 cursor-pointer"
-                />
-                <div className="flex justify-between text-[10px] text-slate-500 font-mono">
-                  <span>512 (Brief)</span>
-                  <span>4096 (Standard)</span>
-                  <span>8192 (Detailed Books)</span>
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-semibold">API Key / Bearer (Optional)</label>
+                  <input
+                    type="password"
+                    value={gptOssApiKey}
+                    onChange={(e) => setGptOssApiKey(e.target.value)}
+                    placeholder="Leave empty if free endpoint"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white font-mono text-base sm:text-xs focus:border-cyan-400"
+                  />
                 </div>
               </div>
+            </div>
 
-              {/* Temperature Slider */}
+            {/* Section B: Model 2 (Qwen 2.5) */}
+            <div className="p-4 rounded-xl border border-white/10 bg-slate-900/40 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-purple-400" />
+                  <span className="font-bold text-slate-200">Model 2: Qwen 2.5 (Coding, Mathematics & STEM)</span>
+                </div>
+                <span className="text-[10px] text-slate-500">Env: QWEN_BASE_URL, QWEN_MODEL, QWEN_API_KEY</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-semibold">Endpoint URL</label>
+                  <input
+                    type="text"
+                    value={qwenBaseUrl}
+                    onChange={(e) => setQwenBaseUrl(e.target.value)}
+                    placeholder="https://text.pollinations.ai"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white font-mono text-base sm:text-xs focus:border-purple-400"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-semibold">Model ID</label>
+                  <input
+                    type="text"
+                    value={qwenModel}
+                    onChange={(e) => setQwenModel(e.target.value)}
+                    placeholder="qwen-coder"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white font-mono text-base sm:text-xs focus:border-purple-400"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-semibold">API Key / Bearer (Optional)</label>
+                  <input
+                    type="password"
+                    value={qwenApiKey}
+                    onChange={(e) => setQwenApiKey(e.target.value)}
+                    placeholder="Leave empty if free endpoint"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white font-mono text-base sm:text-xs focus:border-purple-400"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Section C: Live Search & RAG Metasearch */}
+            <div className="p-4 rounded-xl border border-white/10 bg-slate-900/40 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-emerald-400" />
+                  <span className="font-bold text-slate-200">Live Search & Metasearch Engine</span>
+                </div>
+                <span className="text-[10px] text-slate-500">Env: SEARCH_PROVIDER_URL / SEARXNG_URL</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-semibold">SearXNG Metasearch Instance URL (Optional)</label>
+                  <input
+                    type="text"
+                    value={searchProviderUrl}
+                    onChange={(e) => setSearchProviderUrl(e.target.value)}
+                    placeholder="e.g. http://localhost:8080 or https://search.example.com"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-white font-mono text-xs focus:border-emerald-400"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    If empty, EXAM MIND AI automatically scrapes Google & the live web across all public domains.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-slate-300 font-semibold">Max Output Tokens ({maxOutputTokens})</label>
+                  <input
+                    type="range"
+                    min={512}
+                    max={8192}
+                    step={256}
+                    value={maxOutputTokens}
+                    onChange={(e) => setMaxOutputTokens(Number(e.target.value))}
+                    className="w-full accent-blue-500 cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                    <span>512 (Brief)</span>
+                    <span>4096 (Standard)</span>
+                    <span>8192 (Detailed Books)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Section D: Sampling Controls */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="block text-slate-300 font-semibold">Temperature ({temperature})</label>
                 <input
@@ -327,7 +509,6 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Top-P Slider */}
               <div className="space-y-1.5">
                 <label className="block text-slate-300 font-semibold">Top-P Nucleus Sampling ({topP})</label>
                 <input

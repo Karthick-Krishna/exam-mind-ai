@@ -96,7 +96,7 @@ function extractHighlightedAnswer(rawContent: string): {
 export function ChatMessage({
   message,
   isStreaming = false,
-  mode = "QUICK_ANSWER",
+  mode = "DEEP_SEARCH",
   onRegenerate,
   onFeedback,
   onFollowUpClick,
@@ -142,46 +142,51 @@ export function ChatMessage({
 
   return (
     <div
-      className={`py-3.5 sm:py-6 px-3 sm:px-6 md:px-8 transition-colors ${
+      className={`py-3 sm:py-6 px-2.5 sm:px-6 md:px-8 transition-colors ${
         isAssistant ? "bg-[#040916]/50 border-y border-white/[0.04]" : "bg-transparent"
       }`}
     >
-      <div className="max-w-4xl mx-auto flex gap-2.5 sm:gap-4 md:gap-5 items-start">
+      <div className="max-w-4xl mx-auto flex gap-2 sm:gap-4 md:gap-5 items-start">
         {/* Avatar */}
         <div className="flex-shrink-0 mt-0.5">
           {isAssistant ? (
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400 p-[1px] shadow-md shadow-blue-500/20">
-              <div className="w-full h-full bg-[#050b14] rounded-[7px] sm:rounded-[11px] flex items-center justify-center">
-                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-300" />
-              </div>
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl overflow-hidden bg-black border border-blue-500/30 shadow-md shadow-blue-500/20">
+              <img
+                src="/logo.png"
+                alt="EXAM MIND AI"
+                className="w-full h-full object-cover"
+              />
             </div>
           ) : (
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-slate-300">
-              <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-slate-800/80 border border-white/10 flex items-center justify-center text-slate-300">
+              <User className="w-3 h-3 sm:w-4 sm:h-4" />
             </div>
           )}
         </div>
 
         {/* Message Content Container */}
-        <div className="flex-1 min-w-0 space-y-2.5 sm:space-y-3">
+        <div className="flex-1 min-w-0 space-y-2 sm:space-y-3">
           {/* Header row */}
-          <div className="flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-200">
+          <div className="flex items-center justify-between text-xs gap-1.5">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="font-semibold text-slate-200 text-xs flex-shrink-0">
                 {isAssistant ? "EXAM MIND AI" : "You"}
               </span>
               {isAssistant && message.modelUsed && (
-                <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-white/10">
+                <span
+                  className="text-[9px] sm:text-[10px] font-mono text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-white/10 truncate max-w-[85px] min-[360px]:max-w-[130px] sm:max-w-[240px]"
+                  title={message.modelUsed}
+                >
                   {message.modelUsed}
                 </span>
               )}
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-1.5 opacity-80 hover:opacity-100">
+            <div className="flex items-center gap-0.5 sm:gap-1.5 opacity-90 sm:opacity-80 sm:hover:opacity-100 flex-shrink-0">
               <button
                 onClick={handleCopy}
-                className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                className="p-1 sm:p-1.5 rounded text-slate-400 hover:text-white hover:bg-white/5 transition-colors active:scale-95"
                 title="Copy entire message"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -190,7 +195,7 @@ export function ChatMessage({
                 <>
                   <button
                     onClick={() => handleFeedback("LIKE")}
-                    className={`p-1 rounded hover:bg-white/5 transition-colors ${
+                    className={`p-1 sm:p-1.5 rounded hover:bg-white/5 transition-colors active:scale-95 ${
                       currentFeedback === "LIKE" ? "text-blue-400" : "text-slate-400 hover:text-white"
                     }`}
                     title="Good explanation"
@@ -199,7 +204,7 @@ export function ChatMessage({
                   </button>
                   <button
                     onClick={() => handleFeedback("DISLIKE")}
-                    className={`p-1 rounded hover:bg-white/5 transition-colors ${
+                    className={`p-1 sm:p-1.5 rounded hover:bg-white/5 transition-colors active:scale-95 ${
                       currentFeedback === "DISLIKE" ? "text-rose-400" : "text-slate-400 hover:text-white"
                     }`}
                     title="Needs improvement"
@@ -209,7 +214,7 @@ export function ChatMessage({
                   {onRegenerate && (
                     <button
                       onClick={onRegenerate}
-                      className="p-1 rounded text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                      className="p-1 sm:p-1.5 rounded text-slate-400 hover:text-white hover:bg-white/5 transition-colors active:scale-95"
                       title="Regenerate answer"
                     >
                       <RotateCw className="w-3.5 h-3.5" />
@@ -222,32 +227,32 @@ export function ChatMessage({
 
           {/* Citations Box (if RAG / Live Web sources were retrieved) */}
           {isAssistant && message.citations && message.citations.length > 0 && (
-            <div className="rounded-xl border border-blue-500/20 bg-blue-950/20 p-3 text-xs mb-3">
+            <div className="rounded-xl border border-blue-500/20 bg-blue-950/20 p-2.5 sm:p-3 text-xs mb-3">
               <button
                 onClick={() => setShowCitations(!showCitations)}
                 className="w-full flex items-center justify-between text-cyan-300 font-medium"
               >
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-3.5 h-3.5 text-blue-400" />
-                  <span>
+                <div className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs">
+                  <BookOpen className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                  <span className="truncate">
                     Grounded in {message.citations.length} Verified Source
                     {message.citations.length > 1 ? "s" : ""}
                   </span>
                 </div>
-                {showCitations ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                {showCitations ? <ChevronUp className="w-3.5 h-3.5 flex-shrink-0" /> : <ChevronDown className="w-3.5 h-3.5 flex-shrink-0" />}
               </button>
 
               {showCitations && (
-                <div className="mt-3 space-y-2 pt-2 border-t border-blue-500/15">
+                <div className="mt-2.5 sm:mt-3 space-y-2 pt-2 border-t border-blue-500/15">
                   {message.citations.map((cite, i) => (
                     <div
                       key={i}
-                      className="p-2.5 rounded-lg bg-black/40 border border-white/5 space-y-1.5"
+                      className="p-2 sm:p-2.5 rounded-lg bg-black/40 border border-white/5 space-y-1"
                     >
-                      <div className="flex items-center justify-between font-mono text-[11px] text-cyan-400">
-                        <span className="font-semibold text-slate-200">{cite.documentName}</span>
-                        <div className="flex items-center gap-2">
-                          <span>{cite.sourceUrl ? "Web Knowledge" : `Page ${cite.pageNumber}`} {cite.section ? `(§${cite.section})` : ""}</span>
+                      <div className="flex flex-col min-[480px]:flex-row min-[480px]:items-center justify-between font-mono text-[10px] sm:text-[11px] text-cyan-400 gap-0.5">
+                        <span className="font-semibold text-slate-200 truncate">{cite.documentName}</span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span>{cite.sourceUrl ? "Web Source" : `Page ${cite.pageNumber}`} {cite.section ? `(§${cite.section})` : ""}</span>
                           {cite.sourceUrl && (
                             <a
                               href={cite.sourceUrl}
@@ -255,13 +260,13 @@ export function ChatMessage({
                               rel="noreferrer"
                               className="text-blue-400 hover:text-cyan-300 underline text-[10px] flex items-center gap-0.5"
                             >
-                              <span>Visit Source</span>
+                              <span>Visit</span>
                               <span>↗</span>
                             </a>
                           )}
                         </div>
                       </div>
-                      <p className="text-[12px] text-slate-300 italic font-serif">
+                      <p className="text-[11px] sm:text-[12px] text-slate-300 italic font-serif leading-relaxed">
                         &ldquo;{cite.excerpt}&rdquo;
                       </p>
                     </div>

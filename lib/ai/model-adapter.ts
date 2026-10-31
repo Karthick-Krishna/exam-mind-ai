@@ -1,100 +1,34 @@
-import { getSystemConfig } from "@/lib/database/db";
+import { getSystemConfig, SystemConfig } from "@/lib/database/db";
 import { createAutonomousAcademicStream, synthesizeAcademicResponse } from "./academic-synthesis";
+import { ResponseMode } from "./prompts";
 
-export interface ModelEndpoint {
+export interface ModelEndpointInfo {
   id: string;
   name: string;
-  family: "Qwen" | "DeepSeek" | "Gemma" | "Llama" | "vLLM / Open URL";
+  backend: "gpt-oss" | "qwen";
+  family: "GPT-OSS" | "Qwen 2.5";
   contextWindow: number;
   recommendedRole: string;
 }
 
-export const AVAILABLE_MODELS: ModelEndpoint[] = [
+export const AVAILABLE_MODELS: ModelEndpointInfo[] = [
   {
-    id: "gpt-120b-oss",
-    name: "GPT 120B OSS (Deep Search, Reasoning & Code Cluster)",
-    family: "vLLM / Open URL",
+    id: "gpt-oss",
+    name: "GPT-OSS (General Knowledge, Academic Explanations & Synthesis)",
+    backend: "gpt-oss",
+    family: "GPT-OSS",
     contextWindow: 131072,
-    recommendedRole: "Deep Search, In-Depth Thinking, Coding, Full-Stack & Advanced Mathematics",
+    recommendedRole: "General Knowledge, Humanities, Science, Essays, Deep Search & Multi-Disciplinary Q&A",
   },
   {
-    id: "openai-fast",
-    name: "GPT-OSS Fast Academic (Basic Tasks & Quick Q&A)",
-    family: "vLLM / Open URL",
-    contextWindow: 65536,
-    recommendedRole: "Rapid Academic Q&A, Definitions, Quick Answers & Basic Concept Explanations",
-  },
-  {
-    id: "openai",
-    name: "GPT-4o Open Cloud Cluster (Online Cloud API)",
-    family: "vLLM / Open URL",
-    contextWindow: 128000,
-    recommendedRole: "All-Round Academic Tutor, Deep Mathematics & STEM",
-  },
-  {
-    id: "Qwen/Qwen2.5-72B-Instruct",
-    name: "Qwen 2.5 72B Instruct (Deep Mathematics & STEM)",
-    family: "Qwen",
+    id: "qwen-oss",
+    name: "Qwen 2.5 (Advanced Programming, Mathematics & Technical Reasoning)",
+    backend: "qwen",
+    family: "Qwen 2.5",
     contextWindow: 131072,
-    recommendedRole: "Step-by-Step Proofs, Formal Logic & Olympiad Mathematics",
-  },
-  {
-    id: "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-    name: "DeepSeek R1 (Chain-of-Thought Reasoning)",
-    family: "DeepSeek",
-    contextWindow: 65536,
-    recommendedRole: "Deep Analytical Reasoning & Mathematical Proofs",
-  },
-  {
-    id: "deepseek-ai/DeepSeek-V3",
-    name: "DeepSeek V3 (671B MoE)",
-    family: "DeepSeek",
-    contextWindow: 128000,
-    recommendedRole: "Complex Scientific Derivations & Full-Stack Coding",
+    recommendedRole: "C, C++, Java, Python, JS, Next.js, Algorithms, Calculus, Proofs & Debugging",
   },
 ];
-
-/**
- * Dual Model Dispatcher:
- * Model 1: "gpt-120b-oss" for Deep Search, Thinking, and Coding / Algorithms / Math
- * Model 2: "openai-fast" for Basic Tasks & Quick Answer
- */
-export function selectDualAiModel(prompt: string, mode: string = "QUICK_ANSWER"): {
-  modelId: "gpt-120b-oss" | "openai-fast";
-  displayName: string;
-} {
-  const lower = (prompt || "").toLowerCase();
-  const isCodingOrMath =
-    /code|coding|function|class|algorithm|typescript|javascript|python|java|c\+\+|rust|html|css|sql|database|bug|debug|api|react|nextjs|solve|equation|derivative|integral|matrix|proof|calculus|vector|probability|algebra/i.test(
-      lower
-    );
-
-  if (mode === "DEEP_SEARCH") {
-    return {
-      modelId: "gpt-120b-oss",
-      displayName: "GPT 120B OSS (Deep Search)",
-    };
-  }
-
-  if (mode === "THINKING") {
-    return {
-      modelId: "gpt-120b-oss",
-      displayName: "GPT 120B OSS (Deep Reasoning)",
-    };
-  }
-
-  if (isCodingOrMath) {
-    return {
-      modelId: "gpt-120b-oss",
-      displayName: "GPT 120B OSS (Coding & Logic)",
-    };
-  }
-
-  return {
-    modelId: "openai-fast",
-    displayName: "GPT-OSS Fast Academic (Basic Tasks)",
-  };
-}
 
 export interface ChatMessageParam {
   role: "system" | "user" | "assistant";
@@ -103,6 +37,8 @@ export interface ChatMessageParam {
 
 export interface InferenceOptions {
   model?: string;
+  backend?: "gpt-oss" | "qwen" | "auto";
+  mode?: ResponseMode;
   temperature?: number;
   top_p?: number;
   max_tokens?: number;
@@ -110,63 +46,256 @@ export interface InferenceOptions {
 }
 
 export interface EndpointTestResult {
-  status: "Connected" | "Disconnected" | "Model Unavailable" | "Authentication Required" | "Rate Limited" | "Timeout" | "Invalid Response";
+  status:
+    | "Connected"
+    | "Disconnected"
+    | "Model Unavailable"
+    | "Authentication Required"
+    | "Rate Limited"
+    | "Timeout"
+    | "Invalid Response";
   latencyMs: number;
   model: string;
   endpoint: string;
+  backend: "gpt-oss" | "qwen";
   sampleResponse?: string;
   error?: string;
 }
 
+export interface ModelBackendConfig {
+  backend: "gpt-oss" | "qwen";
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+  displayName: string;
+}
+
+/**
+ * Resolves the configuration for a given model backend (GPT-OSS or Qwen),
+ * prioritizing specific environment variables (Requirement 1 & 12).
+ */
+export async function getModelBackendConfig(
+  backend: "gpt-oss" | "qwen",
+  configOverride?: SystemConfig
+): Promise<ModelBackendConfig> {
+  const config = configOverride || (await getSystemConfig());
+
+  if (backend === "qwen") {
+    const baseUrl =
+      process.env.QWEN_BASE_URL ||
+      config.qwenBaseUrl ||
+      process.env.INFERENCE_BASE_URL ||
+      config.inferenceBaseUrl ||
+      "https://text.pollinations.ai";
+
+    const apiKey =
+      process.env.QWEN_API_KEY ??
+      config.qwenApiKey ??
+      process.env.INFERENCE_API_KEY ??
+      "";
+
+    const rawModel =
+      process.env.QWEN_MODEL ||
+      config.qwenModel ||
+      "qwen-coder";
+
+    return {
+      backend: "qwen",
+      baseUrl,
+      apiKey,
+      model: rawModel,
+      displayName: "Qwen 2.5 OSS",
+    };
+  }
+
+  // GPT-OSS backend configuration
+  const baseUrl =
+    process.env.GPT_OSS_BASE_URL ||
+    config.gptOssBaseUrl ||
+    process.env.INFERENCE_BASE_URL ||
+    config.inferenceBaseUrl ||
+    "https://text.pollinations.ai";
+
+  const apiKey =
+    process.env.GPT_OSS_API_KEY ??
+    config.gptOssApiKey ??
+    process.env.INFERENCE_API_KEY ??
+    "";
+
+  const rawModel =
+    process.env.GPT_OSS_MODEL ||
+    config.gptOssModel ||
+    process.env.INFERENCE_MODEL ||
+    config.activeModel ||
+    "openai-fast";
+
+  return {
+    backend: "gpt-oss",
+    baseUrl,
+    apiKey,
+    model: rawModel,
+    displayName: "GPT-OSS",
+  };
+}
+
+/**
+ * Intelligent Backend Model Router (Requirement 2):
+ * Classifies the inquiry by task domain and selects the most capable available model:
+ * - Programming, code debugging, software engineering, algorithms -> Qwen
+ * - Mathematics, calculus, formal logic, proofs -> Qwen
+ * - General knowledge, academic explanations, essays, science, humanities -> GPT-OSS
+ * - Deep Search research dossiers -> GPT-OSS
+ * - Technical Thinking mode -> Qwen
+ */
+export function routePromptToModel(
+  prompt: string,
+  mode: ResponseMode = "DEEP_SEARCH"
+): {
+  preferred: "gpt-oss" | "qwen";
+  fallback: "gpt-oss" | "qwen";
+  reason: string;
+  displayName: string;
+} {
+  const lower = (prompt || "").toLowerCase();
+
+  // 1. Programming & Debugging Detection
+  const isProgramming =
+    /\b(code|coding|program|function|class|algorithm|typescript|javascript|python|java|c\+\+|rust|html|css|sql|database|bug|debug|api|react|nextjs|compiler|syntax|refactor|unit test|docker|git|script|php|swift|kotlin|go|golang|rest api|graphql)\b/i.test(
+      lower
+    ) ||
+    /```[\s\S]*?```/.test(prompt);
+
+  // 2. Mathematics & Formal Proof Detection
+  const isMathematics =
+    /\b(solve|equation|derivative|integral|differentiate|integrate|calculus|matrix|proof|prove that|vector|probability|algebra|linear algebra|eigenvalue|eigenvector|limit as|summation|lagrange|mean value theorem|rolle|taylor series|polynomial|geometry|theorem)\b/i.test(
+      lower
+    );
+
+  // Programming and code debugging -> Qwen is the specialist
+  if (isProgramming) {
+    return {
+      preferred: "qwen",
+      fallback: "gpt-oss",
+      reason: "Qwen 2.5 specialized for programming, debugging, and software architecture",
+      displayName: "Qwen 2.5 OSS (Programming & Code)",
+    };
+  }
+
+  // Mathematics, calculus, and step-by-step proofs -> Qwen
+  if (isMathematics) {
+    return {
+      preferred: "qwen",
+      fallback: "gpt-oss",
+      reason: "Qwen 2.5 specialized for mathematical problem-solving and rigorous derivations",
+      displayName: "Qwen 2.5 OSS (Mathematics & Logic)",
+    };
+  }
+
+  // Deep Search research dossier -> GPT-OSS for comprehensive literature synthesis
+  if (mode === "DEEP_SEARCH") {
+    return {
+      preferred: "gpt-oss",
+      fallback: "qwen",
+      reason: "GPT-OSS specialized for multi-source web synthesis, dossiers, and long-form analysis",
+      displayName: "GPT-OSS (Deep Search)",
+    };
+  }
+
+  // General knowledge, everyday questions, academic concepts, quick Q&A -> GPT-OSS
+  return {
+    preferred: "gpt-oss",
+    fallback: "qwen",
+    reason: "GPT-OSS primary general-purpose academic and educational tutor",
+    displayName: "GPT-OSS (General Intelligence)",
+  };
+}
+
+/**
+ * Backward-compatibility wrapper for selectDualAiModel
+ */
+export function selectDualAiModel(prompt: string, mode: string = "DEEP_SEARCH") {
+  const routed = routePromptToModel(prompt, mode as ResponseMode);
+  return {
+    modelId: routed.preferred === "qwen" ? ("qwen-oss" as const) : ("gpt-oss" as const),
+    displayName: routed.displayName,
+  };
+}
+
 /**
  * Resolves inference endpoint URL dynamically:
- * Strictly routes to online cloud endpoints (100% Vercel compatible, zero localhost).
+ * Supports local Ollama (http://localhost:11434/v1), Groq, OpenRouter, vLLM, and Pollinations.
  */
 export function resolveInferenceEndpoint(baseUrl: string): { url: string; isDirectPollinations: boolean } {
   let clean = (baseUrl || "").trim().replace(/\/+$/, "");
-  // Strictly prevent localhost or private IPs from leaking into cloud deployments
-  if (
-    !clean ||
-    clean.includes("localhost") ||
-    clean.includes("127.0.0.1") ||
-    clean.includes("11434") ||
-    clean.includes("8000") ||
-    clean.includes("text.pollinations.ai")
-  ) {
+
+  if (!clean || clean.includes("text.pollinations.ai")) {
     return { url: "https://text.pollinations.ai/", isDirectPollinations: true };
   }
+
+  // Ollama local endpoint: e.g. http://localhost:11434 or http://127.0.0.1:11434
+  if (clean.includes("11434")) {
+    if (clean.endsWith("/chat/completions")) return { url: clean, isDirectPollinations: false };
+    if (clean.endsWith("/v1")) return { url: `${clean}/chat/completions`, isDirectPollinations: false };
+    return { url: `${clean}/v1/chat/completions`, isDirectPollinations: false };
+  }
+
   if (clean.endsWith("/chat/completions")) {
     return { url: clean, isDirectPollinations: false };
   }
+
   return { url: `${clean}/chat/completions`, isDirectPollinations: false };
 }
 
 /**
- * Real model connection verification:
- * Sends an actual generation prompt to the configured endpoint and checks for a valid response.
+ * Resolves target model string sent over HTTP to the specific API provider:
+ * Properly maps generic IDs to provider-specific slugs (Groq, OpenRouter, Ollama, Pollinations).
  */
-export async function testModelEndpoint(
+export function resolveTargetModelName(backend: "gpt-oss" | "qwen", requestedModel: string, endpointUrl: string): string {
+  const isPollinations = endpointUrl.includes("pollinations");
+  const isGroq = endpointUrl.includes("groq");
+  const isOpenRouter = endpointUrl.includes("openrouter");
+  const isOllama = endpointUrl.includes("11434") || endpointUrl.includes("ollama");
+
+  if (backend === "qwen") {
+    if (isPollinations) return "qwen-coder";
+    if (isGroq) return "qwen-2.5-coder-32b";
+    if (isOpenRouter) return "qwen/qwen-2.5-72b-instruct";
+    if (isOllama) return "qwen2.5";
+    return requestedModel && requestedModel !== "qwen-oss" ? requestedModel : "Qwen/Qwen2.5-72B-Instruct";
+  }
+
+  // GPT-OSS backend mapping
+  if (isPollinations) return "openai-fast";
+  if (isGroq) return "llama-3.3-70b-versatile";
+  if (isOpenRouter) return "meta-llama/llama-3.3-70b-instruct:free";
+  if (isOllama) return "llama3.3";
+
+  return requestedModel && requestedModel !== "gpt-oss" && requestedModel !== "gpt-120b-oss"
+    ? requestedModel
+    : "openai-fast";
+}
+
+/**
+ * Real independent model connection verification for either GPT-OSS or Qwen
+ */
+export async function testSingleModel(
+  backend: "gpt-oss" | "qwen",
   baseUrlOverride?: string,
   modelOverride?: string,
   apiKeyOverride?: string
 ): Promise<EndpointTestResult> {
-  const config = await getSystemConfig();
-  const baseUrl = baseUrlOverride || process.env.INFERENCE_BASE_URL || config.inferenceBaseUrl || "https://text.pollinations.ai";
-  const model = modelOverride || config.activeModel || "openai-fast";
-  const apiKey = apiKeyOverride ?? process.env.INFERENCE_API_KEY ?? "";
+  const backendConfig = await getModelBackendConfig(backend);
+  const baseUrl = baseUrlOverride || backendConfig.baseUrl;
+  const rawModel = modelOverride || backendConfig.model;
+  const apiKey = apiKeyOverride ?? backendConfig.apiKey;
 
   const startTime = Date.now();
-  const { url: testEndpoint, isDirectPollinations } = resolveInferenceEndpoint(baseUrl);
+  const { url: testEndpoint } = resolveInferenceEndpoint(baseUrl);
+  const targetModel = resolveTargetModelName(backend, rawModel, testEndpoint);
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000);
-
-    const targetModel = isDirectPollinations
-      ? "openai-fast"
-      : model === "vllm-local-cluster"
-      ? "Qwen/Qwen2.5-72B-Instruct"
-      : model;
+    const timeout = setTimeout(() => controller.abort(), 8000);
 
     const res = await fetch(testEndpoint, {
       method: "POST",
@@ -176,8 +305,8 @@ export async function testModelEndpoint(
       },
       body: JSON.stringify({
         model: targetModel,
-        messages: [{ role: "user", content: "Reply with the single word: OPERATIONAL" }],
-        max_tokens: 20,
+        messages: [{ role: "user", content: `Ping test for ${backend}. Reply with the single word: OPERATIONAL` }],
+        max_tokens: 25,
         temperature: 0.1,
         stream: false,
       }),
@@ -193,7 +322,8 @@ export async function testModelEndpoint(
         latencyMs,
         model: targetModel,
         endpoint: baseUrl,
-        error: `HTTP ${res.status}: Endpoint rejected request. Please check bearer token in settings.`,
+        backend,
+        error: `HTTP ${res.status}: Bearer authentication required or invalid token.`,
       };
     }
 
@@ -203,7 +333,8 @@ export async function testModelEndpoint(
         latencyMs,
         model: targetModel,
         endpoint: baseUrl,
-        error: "HTTP 429: Model server rate limit reached. Retry shortly.",
+        backend,
+        error: "HTTP 429: Inference endpoint rate limit reached. Retry shortly.",
       };
     }
 
@@ -214,6 +345,7 @@ export async function testModelEndpoint(
         latencyMs,
         model: targetModel,
         endpoint: baseUrl,
+        backend,
         error: `HTTP ${res.status}: ${errText.slice(0, 150)}`,
       };
     }
@@ -233,7 +365,8 @@ export async function testModelEndpoint(
         latencyMs,
         model: targetModel,
         endpoint: baseUrl,
-        error: "Endpoint returned 200 OK but choices[0].message.content was empty.",
+        backend,
+        error: "Endpoint returned 200 OK but content was empty.",
       };
     }
 
@@ -242,6 +375,7 @@ export async function testModelEndpoint(
       latencyMs,
       model: targetModel,
       endpoint: baseUrl,
+      backend,
       sampleResponse: generatedText.trim().slice(0, 80),
     };
   } catch (err: any) {
@@ -250,102 +384,155 @@ export async function testModelEndpoint(
       return {
         status: "Timeout",
         latencyMs,
-        model,
+        model: targetModel,
         endpoint: baseUrl,
-        error: "Inference endpoint failed to respond within 7s timeout.",
+        backend,
+        error: "Endpoint failed to respond within 8s timeout.",
       };
     }
 
     return {
       status: "Disconnected",
       latencyMs,
-      model,
+      model: targetModel,
       endpoint: baseUrl,
+      backend,
       error: err.message || "Failed to establish TCP/HTTP connection with model server.",
     };
   }
 }
 
 /**
- * Perform streaming inference with actual open-source AI models via online URL API.
- * Flow: Primary Online URL -> Secondary Online URL -> Autonomous Educational Synthesis Engine.
- * 100% resilient on Vercel: Zero localhost dependency, zero broken error cards.
+ * Backward compatibility test function
+ */
+export async function testModelEndpoint(
+  baseUrlOverride?: string,
+  modelOverride?: string,
+  apiKeyOverride?: string
+): Promise<EndpointTestResult> {
+  return testSingleModel("gpt-oss", baseUrlOverride, modelOverride, apiKeyOverride);
+}
+
+/**
+ * Perform streaming inference with automatic intelligent routing & controlled fallback:
+ * Preferred Model -> Alternate Model Fallback -> High-Reliability Academic Synthesis.
+ */
+export async function executeMultiModelStream(
+  messages: ChatMessageParam[],
+  options: InferenceOptions = {}
+): Promise<{ stream: ReadableStream<Uint8Array>; modelUsed: string }> {
+  const lastUserPrompt = [...messages].reverse().find((m) => m.role === "user")?.content || "";
+  const routed = routePromptToModel(lastUserPrompt, options.mode || "DEEP_SEARCH");
+
+  const preferredBackend = (options.backend && options.backend !== "auto") ? options.backend : routed.preferred;
+  const fallbackBackend = preferredBackend === "qwen" ? "gpt-oss" : "qwen";
+
+  const preferredConfig = await getModelBackendConfig(preferredBackend);
+  const fallbackConfig = await getModelBackendConfig(fallbackBackend);
+
+  // Attempt 1: Preferred Model
+  try {
+    const stream = await callHttpInferenceStream(preferredConfig, messages, options);
+    if (stream) {
+      return { stream, modelUsed: preferredConfig.displayName };
+    }
+  } catch (err: any) {
+    console.warn(`Primary model (${preferredConfig.displayName}) notice:`, err.message);
+  }
+
+  // Attempt 2: Automatic Model Fallback to Alternate Backend
+  try {
+    console.log(`Failing over to secondary open-source model (${fallbackConfig.displayName})...`);
+    const fallbackStream = await callHttpInferenceStream(fallbackConfig, messages, options);
+    if (fallbackStream) {
+      return {
+        stream: fallbackStream,
+        modelUsed: `${fallbackConfig.displayName} (Automatic Fallback)`,
+      };
+    }
+  } catch (fallbackErr: any) {
+    console.warn(`Secondary fallback (${fallbackConfig.displayName}) notice:`, fallbackErr.message);
+  }
+
+  // Attempt 3: Public Cloud Cluster Fallback if configured URLs are remote/private
+  if (!preferredConfig.baseUrl.includes("pollinations")) {
+    try {
+      console.log("Attempting public open-source cloud fallback...");
+      const publicStream = await callHttpInferenceStream(
+        {
+          backend: "gpt-oss",
+          baseUrl: "https://text.pollinations.ai",
+          apiKey: "",
+          model: "openai-fast",
+          displayName: "Open Cloud Cluster",
+        },
+        messages,
+        options
+      );
+      if (publicStream) {
+        return {
+          stream: publicStream,
+          modelUsed: "Open Cloud Cluster (Public Mirror)",
+        };
+      }
+    } catch {
+      // continue to autonomous synthesis
+    }
+  }
+
+  // Attempt 4: High-Reliability Academic Synthesis Guarantee
+  console.log("Serving verified educational response via autonomous synthesis engine...");
+  const synthesisStream = createAutonomousAcademicStream(messages, options);
+  return {
+    stream: synthesisStream,
+    modelUsed: `${preferredConfig.displayName} (Academic Synthesis Engine)`,
+  };
+}
+
+/**
+ * Backward compatibility stream wrapper
  */
 export async function createChatCompletionStream(
   messages: ChatMessageParam[],
   options: InferenceOptions = {}
 ): Promise<ReadableStream<Uint8Array>> {
-  const config = await getSystemConfig();
-  const primaryUrl = process.env.INFERENCE_BASE_URL || config.inferenceBaseUrl || "https://text.pollinations.ai";
-  const fallbackUrl = "https://text.pollinations.ai";
-  const apiKey = process.env.INFERENCE_API_KEY || "";
-  const model = options.model || config.activeModel || "openai-fast";
-
-  // Attempt 1: Primary Configured Online Cloud Endpoint
-  try {
-    const stream = await callHttpInferenceStream(primaryUrl, model, messages, options, apiKey);
-    if (stream) return stream;
-  } catch (err: any) {
-    console.warn(`Primary model endpoint (${primaryUrl}) connection notice:`, err.message);
-  }
-
-  // Attempt 2: Secondary Public Open-Source Cloud Fallback
-  if (primaryUrl !== fallbackUrl) {
-    try {
-      console.log(`Attempting fallback to public open-source cloud cluster (${fallbackUrl})...`);
-      const fallbackStream = await callHttpInferenceStream(fallbackUrl, "openai-fast", messages, options, "");
-      if (fallbackStream) return fallbackStream;
-    } catch (fallbackErr: any) {
-      console.warn("Secondary fallback model endpoint notice:", fallbackErr.message);
-    }
-  }
-
-  // Attempt 3: High-Reliability Academic Synthesis Fallback (Vercel Production Guarantee)
-  // Generates real, Gemini-formatted academic analysis using extracted RAG textbook and Google Search context.
-  console.log("Synthesizing high-grade educational response via active academic engine...");
-  return createAutonomousAcademicStream(messages, options);
+  const result = await executeMultiModelStream(messages, options);
+  return result.stream;
 }
 
 /**
- * Non-streaming chat completion for quizzes and structured outputs
+ * Non-streaming chat completion for quizzes and structured outputs with fallback
  */
 export async function generateChatCompletion(
   messages: ChatMessageParam[],
   options: InferenceOptions = {}
 ): Promise<string> {
-  const config = await getSystemConfig();
-  const primaryUrl = process.env.INFERENCE_BASE_URL || config.inferenceBaseUrl || "https://text.pollinations.ai";
-  const fallbackUrl = "https://text.pollinations.ai";
-  const apiKey = process.env.INFERENCE_API_KEY || "";
-  const model = options.model || config.activeModel || "openai-fast";
+  const lastUserPrompt = [...messages].reverse().find((m) => m.role === "user")?.content || "";
+  const routed = routePromptToModel(lastUserPrompt, options.mode || "DEEP_SEARCH");
 
-  const tryCall = async (url: string, targetModel: string): Promise<string | null> => {
+  const preferredBackend = (options.backend && options.backend !== "auto") ? options.backend : routed.preferred;
+  const fallbackBackend = preferredBackend === "qwen" ? "gpt-oss" : "qwen";
+
+  const preferredConfig = await getModelBackendConfig(preferredBackend);
+  const fallbackConfig = await getModelBackendConfig(fallbackBackend);
+
+  const tryCall = async (config: ModelBackendConfig): Promise<string | null> => {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 14000);
-    const { url: endpoint, isDirectPollinations } = resolveInferenceEndpoint(url);
-
-    let actualModel = targetModel;
-    if (isDirectPollinations) {
-      actualModel = targetModel === "gpt-120b-oss" ? "openai" : "openai-fast";
-    } else if (targetModel === "gpt-120b-oss") {
-      actualModel = url.includes("groq")
-        ? "llama-3.3-70b-versatile"
-        : url.includes("openrouter")
-        ? "meta-llama/llama-3.3-70b-instruct:free"
-        : "gpt-4o";
-    }
+    const timeout = setTimeout(() => controller.abort(), 18000);
+    const { url: endpoint } = resolveInferenceEndpoint(config.baseUrl);
+    const actualModel = resolveTargetModelName(config.backend, config.model, endpoint);
 
     const res = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
       },
       body: JSON.stringify({
         model: actualModel,
         messages,
-        temperature: options.temperature ?? config.temperature ?? 0.2,
-        max_tokens: options.max_tokens ?? config.maxOutputTokens ?? 2048,
+        temperature: options.temperature ?? 0.2,
+        max_tokens: options.max_tokens ?? 2048,
         stream: false,
       }),
       signal: controller.signal,
@@ -367,57 +554,44 @@ export async function generateChatCompletion(
   };
 
   try {
-    const result = await tryCall(primaryUrl, model);
-    if (result) return result;
+    const res1 = await tryCall(preferredConfig);
+    if (res1) return res1;
   } catch (e) {
-    console.warn("Primary non-streaming inference notice, attempting fallback:", e);
+    console.warn("Primary model call notice:", e);
   }
 
-  if (primaryUrl !== fallbackUrl) {
-    try {
-      const fallbackResult = await tryCall(fallbackUrl, "openai-fast");
-      if (fallbackResult) return fallbackResult;
-    } catch (e) {
-      console.warn("Fallback non-streaming inference notice:", e);
-    }
+  try {
+    const res2 = await tryCall(fallbackConfig);
+    if (res2) return res2;
+  } catch (e) {
+    console.warn("Fallback model call notice:", e);
   }
 
-  // Autonomous synthesis guarantee for quizzes and study materials
   return synthesizeAcademicResponse(messages, options);
 }
 
 /**
- * Low-level HTTP SSE streaming caller with First-Token Latency Guard (< 1200ms)
+ * Low-level HTTP Streaming Caller with timeout guard and zero artificial delay
  */
 async function callHttpInferenceStream(
-  baseUrl: string,
-  model: string,
+  config: ModelBackendConfig,
   messages: ChatMessageParam[],
-  options: InferenceOptions,
-  apiKey: string
+  options: InferenceOptions
 ): Promise<ReadableStream<Uint8Array> | null> {
-  const { url: endpoint, isDirectPollinations } = resolveInferenceEndpoint(baseUrl);
+  const { url: endpoint } = resolveInferenceEndpoint(config.baseUrl);
+  const actualModel = resolveTargetModelName(config.backend, config.model, endpoint);
   const controller = new AbortController();
-  // 1800ms total connect timeout
-  const timeoutId = setTimeout(() => controller.abort(), 1800);
 
-  let actualModel = model;
-  if (isDirectPollinations) {
-    actualModel = model === "gpt-120b-oss" ? "openai" : "openai-fast";
-  } else if (model === "gpt-120b-oss") {
-    actualModel = baseUrl.includes("groq")
-      ? "llama-3.3-70b-versatile"
-      : baseUrl.includes("openrouter")
-      ? "meta-llama/llama-3.3-70b-instruct:free"
-      : "gpt-4o";
-  }
+  // 25s connection & token window
+  const timeoutId = setTimeout(() => controller.abort(), 25000);
 
   try {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(apiKey ? { Authorization: `Bearer ${apiKey}` } : {}),
+        Accept: "text/event-stream, text/plain, */*",
+        ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
       },
       body: JSON.stringify({
         model: actualModel,
@@ -433,35 +607,25 @@ async function callHttpInferenceStream(
     clearTimeout(timeoutId);
 
     if (response.ok && response.body) {
-      const reader = response.body.getReader();
-      // First-token guard: must receive first chunk within 1200ms
-      const chunkPromise = reader.read();
-      const timeoutGuard = new Promise<{ done: boolean; value: undefined }>((resolve) =>
-        setTimeout(() => resolve({ done: true, value: undefined }), 1200)
-      );
-
-      const firstChunk = await Promise.race([chunkPromise, timeoutGuard]);
-      if (!firstChunk.value || firstChunk.done) {
-        reader.cancel().catch(() => {});
-        return null;
-      }
-
-      return transformOpenAiStreamToTextStreamWithInitial(firstChunk.value, reader);
+      return transformUniversalStreamToTextStream(response.body);
     }
-  } catch {
+  } catch (err: any) {
     clearTimeout(timeoutId);
+    console.warn(`Error connecting to model endpoint (${endpoint}):`, err.message);
     return null;
   }
   return null;
 }
 
 /**
- * Transforms an OpenAI SSE byte stream into a pure text token stream with an initial pre-read chunk
+ * Universal Stream Decoder:
+ * Decodes standard OpenAI SSE streams (`data: {"choices":[{"delta":{"content":"..."}}]}`),
+ * raw plain-text streams, and structured JSON outputs seamlessly with zero token delays.
  */
-function transformOpenAiStreamToTextStreamWithInitial(
-  initialChunk: Uint8Array,
-  reader: ReadableStreamDefaultReader<Uint8Array>
+function transformUniversalStreamToTextStream(
+  bodyStream: ReadableStream<Uint8Array>
 ): ReadableStream<Uint8Array> {
+  const reader = bodyStream.getReader();
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
   let buffer = "";
@@ -469,60 +633,82 @@ function transformOpenAiStreamToTextStreamWithInitial(
 
   return new ReadableStream({
     async start(controller) {
-      const processValue = (value: Uint8Array) => {
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed || trimmed.startsWith(":")) continue;
-          if (trimmed === "data: [DONE]") {
-            controller.close();
-            return true;
-          }
-          if (trimmed.startsWith("data: ")) {
-            try {
-              const json = JSON.parse(trimmed.slice(6));
-              const delta = json.choices?.[0]?.delta;
-              let token = delta?.content;
-              if (!token && delta?.reasoning) {
-                continue;
-              }
-              if (token) {
-                if (token.includes("<think>")) {
-                  inThinkTag = true;
-                  token = token.replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "");
-                } else if (inThinkTag) {
-                  if (token.includes("</think>")) {
-                    inThinkTag = false;
-                    token = token.slice(token.indexOf("</think>") + 8);
-                  } else {
-                    continue;
-                  }
-                }
-                if (token) {
-                  controller.enqueue(encoder.encode(token));
-                }
-              }
-            } catch {
-              // Ignore partial json
-            }
-          }
-        }
-        return false;
-      };
-
       try {
-        // Process first verified chunk immediately
-        if (processValue(initialChunk)) return;
-
-        // Continue reading remainder of stream
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          if (value && processValue(value)) return;
+          if (!value) continue;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // Server-Sent Events (SSE) format
+          if (buffer.includes("data: ")) {
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || trimmed.startsWith(":")) continue;
+
+              if (trimmed === "data: [DONE]") {
+                controller.close();
+                return;
+              }
+
+              if (trimmed.startsWith("data: ")) {
+                try {
+                  const json = JSON.parse(trimmed.slice(6));
+                  const delta = json.choices?.[0]?.delta;
+                  let token = delta?.content ?? delta?.text ?? "";
+
+                  if (!token && json.choices?.[0]?.message?.content) {
+                    token = json.choices[0].message.content;
+                  }
+
+                  if (token) {
+                    token = cleanThinkTags(token, inThinkTag, (state) => {
+                      inThinkTag = state;
+                    });
+                    if (token) {
+                      controller.enqueue(encoder.encode(token));
+                    }
+                  }
+                } catch {
+                  // Partial JSON chunk, will be picked up on next iteration
+                }
+              } else if (!trimmed.startsWith("data:")) {
+                let token = cleanThinkTags(trimmed + "\n", inThinkTag, (state) => {
+                  inThinkTag = state;
+                });
+                if (token) controller.enqueue(encoder.encode(token));
+              }
+            }
+          } else if (buffer.length > 0) {
+            // Raw text streaming
+            let token = cleanThinkTags(buffer, inThinkTag, (state) => {
+              inThinkTag = state;
+            });
+            buffer = "";
+            if (token) {
+              controller.enqueue(encoder.encode(token));
+            }
+          }
         }
+
+        if (buffer.trim()) {
+          if (buffer.startsWith("data: ")) {
+            try {
+              const json = JSON.parse(buffer.slice(6));
+              const token = json.choices?.[0]?.delta?.content || "";
+              if (token) controller.enqueue(encoder.encode(token));
+            } catch {
+              // ignore
+            }
+          } else {
+            controller.enqueue(encoder.encode(buffer));
+          }
+        }
+
         controller.close();
       } catch (err) {
         controller.error(err);
@@ -531,35 +717,24 @@ function transformOpenAiStreamToTextStreamWithInitial(
   });
 }
 
-/**
- * Cloud diagnostic stream (used only as a safety net; autonomous synthesis serves educational responses)
- */
-function createConnectionErrorStream(details: {
-  endpoint: string;
-  model: string;
-  reason: string;
-}): ReadableStream<Uint8Array> {
-  const encoder = new TextEncoder();
-  const cleanEndpoint = details.endpoint.includes("localhost") || details.endpoint.includes("11434")
-    ? "https://text.pollinations.ai"
-    : details.endpoint;
-  const errorNotice = `### 🌐 Cloud AI Inference Notice
+function cleanThinkTags(
+  text: string,
+  currentlyInTag: boolean,
+  setInTag: (val: boolean) => void
+): string {
+  let cleaned = text;
 
-The application is connecting to the cloud AI cluster.
+  if (cleaned.includes("<think>")) {
+    setInTag(true);
+    cleaned = cleaned.replace(/<think>[\s\S]*?(?:<\/think>|$)/g, "");
+  } else if (currentlyInTag) {
+    if (cleaned.includes("</think>")) {
+      setInTag(false);
+      cleaned = cleaned.slice(cleaned.indexOf("</think>") + 8);
+    } else {
+      return "";
+    }
+  }
 
-**Status:**
-- **Cloud Endpoint**: \`${cleanEndpoint}\`
-- **Active Model**: \`${details.model}\`
-- **Notice**: ${details.reason}
-
-**Next Steps:**
-1. Check the **[Admin & Model Health](/admin)** dashboard to select a high-speed cloud endpoint (e.g. Groq, OpenRouter, or Pollinations).
-2. Click **Regenerate** to resend your educational inquiry.`;
-
-  return new ReadableStream({
-    start(controller) {
-      controller.enqueue(encoder.encode(errorNotice));
-      controller.close();
-    },
-  });
+  return cleaned;
 }

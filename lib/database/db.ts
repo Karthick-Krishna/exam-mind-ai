@@ -148,6 +148,14 @@ export interface SystemConfig {
   fallbackModel: string;
   isHealthy: boolean;
   lastHealthCheck: string;
+  // Specific Dual Model Configurations (Requirement 1 & 12)
+  gptOssBaseUrl?: string;
+  gptOssApiKey?: string;
+  gptOssModel?: string;
+  qwenBaseUrl?: string;
+  qwenApiKey?: string;
+  qwenModel?: string;
+  searchProviderUrl?: string;
 }
 
 // Persistent Storage Layer with fallback to local JSON DB
@@ -180,16 +188,23 @@ const DEFAULT_USER: User = {
 
 // 100% Online URL API connectivity for seamless Vercel deployment (Zero local dependencies)
 const DEFAULT_CONFIG: SystemConfig = {
-  activeModel: process.env.INFERENCE_MODEL || "openai-fast",
-  inferenceBaseUrl: process.env.INFERENCE_BASE_URL || "https://text.pollinations.ai",
+  activeModel: process.env.GPT_OSS_MODEL || process.env.INFERENCE_MODEL || "gpt-oss",
+  inferenceBaseUrl: process.env.GPT_OSS_BASE_URL || process.env.INFERENCE_BASE_URL || "https://text.pollinations.ai",
   hasApiKey: false,
   contextLength: 32768,
   maxOutputTokens: 4096,
   temperature: 0.2,
   topP: 0.9,
-  fallbackModel: "openai",
+  fallbackModel: process.env.QWEN_MODEL || "qwen-oss",
   isHealthy: true,
   lastHealthCheck: new Date().toISOString(),
+  gptOssBaseUrl: process.env.GPT_OSS_BASE_URL || process.env.INFERENCE_BASE_URL || "https://text.pollinations.ai",
+  gptOssApiKey: process.env.GPT_OSS_API_KEY || "",
+  gptOssModel: process.env.GPT_OSS_MODEL || "openai-fast",
+  qwenBaseUrl: process.env.QWEN_BASE_URL || process.env.INFERENCE_BASE_URL || "https://text.pollinations.ai",
+  qwenApiKey: process.env.QWEN_API_KEY || "",
+  qwenModel: process.env.QWEN_MODEL || "qwen-coder",
+  searchProviderUrl: process.env.SEARCH_PROVIDER_URL || process.env.SEARXNG_URL || "",
 };
 
 function getInitialDB(): DatabaseSchema {
@@ -632,14 +647,16 @@ export async function getSystemConfig(): Promise<SystemConfig> {
     saveDB();
   }
   // Sanitize any residual localhost/11434 endpoints to online URL
+  // Only sanitize localhost if deployed in cloud (Vercel) where localhost is unreachable
   if (
+    process.env.VERCEL &&
     db.systemConfig.inferenceBaseUrl &&
     (db.systemConfig.inferenceBaseUrl.includes("localhost") ||
       db.systemConfig.inferenceBaseUrl.includes("127.0.0.1") ||
       db.systemConfig.inferenceBaseUrl.includes("11434"))
   ) {
     db.systemConfig.inferenceBaseUrl = "https://text.pollinations.ai";
-    db.systemConfig.activeModel = "openai-fast";
+    db.systemConfig.activeModel = "gpt-oss";
     saveDB();
   }
   return db.systemConfig;
@@ -648,7 +665,9 @@ export async function getSystemConfig(): Promise<SystemConfig> {
 export async function updateSystemConfig(updates: Partial<SystemConfig>): Promise<SystemConfig> {
   const db = loadDB();
   const sanitizedUpdates = { ...updates };
+  // Only sanitize localhost if deployed in cloud (Vercel)
   if (
+    process.env.VERCEL &&
     sanitizedUpdates.inferenceBaseUrl &&
     (sanitizedUpdates.inferenceBaseUrl.includes("localhost") ||
       sanitizedUpdates.inferenceBaseUrl.includes("127.0.0.1") ||

@@ -221,19 +221,19 @@ The ground state energy E_0 = (1/2) * hbar * omega is the zero-point energy, man
     <div className="min-h-screen bg-[#030712] text-slate-200">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-4 sm:py-10 space-y-5 sm:space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5 sm:pb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 border-b border-white/10 pb-4 sm:pb-6">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30">
+              <span className="p-1.5 rounded-lg bg-blue-500/20 text-blue-400 border border-blue-500/30 flex-shrink-0">
                 <BookOpen className="w-5 h-5" />
               </span>
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight">
                 Textbook & Document Intelligence (RAG)
               </h1>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400">
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
               Upload academic textbooks, lecture slides, and notes. The AI parses pages, indexes vector embeddings, and answers queries with verified citations.
             </p>
           </div>
@@ -241,7 +241,7 @@ The ground state energy E_0 = (1/2) * hbar * omega is the zero-point energy, man
           <button
             onClick={handleUploadSample}
             disabled={uploading}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-semibold shadow-md transition-all w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 text-xs font-semibold shadow-md transition-all w-full sm:w-auto active:scale-95 flex-shrink-0"
           >
             <Sparkles className="w-4 h-4 text-cyan-400" />
             <span>Load Sample Textbook (Physics)</span>
@@ -310,7 +310,7 @@ The ground state energy E_0 = (1/2) * hbar * omega is the zero-point energy, man
               <form onSubmit={handleFileUpload} className="space-y-4">
                 <div
                   onClick={() => document.getElementById("file-upload-input")?.click()}
-                  className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                  className={`border-2 border-dashed rounded-xl p-4 sm:p-6 text-center cursor-pointer transition-colors ${
                     selectedFile
                       ? "border-cyan-500/50 bg-cyan-950/20"
                       : "border-white/10 hover:border-blue-500/40 bg-slate-900/40"
@@ -441,15 +441,15 @@ The ground state energy E_0 = (1/2) * hbar * omega is the zero-point energy, man
                 filteredDocs.map((doc) => (
                   <div
                     key={doc.id}
-                    className="p-4 rounded-xl border border-white/10 bg-slate-950/60 hover:border-blue-500/30 transition-all flex items-center justify-between gap-4"
+                    className="p-3.5 sm:p-4 rounded-xl border border-white/10 bg-slate-950/60 hover:border-blue-500/30 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="p-2.5 rounded-xl bg-blue-950/60 border border-blue-500/20 text-cyan-400 flex-shrink-0">
-                        <FileText className="w-5 h-5" />
+                      <div className="p-2 sm:p-2.5 rounded-xl bg-blue-950/60 border border-blue-500/20 text-cyan-400 flex-shrink-0">
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-sm text-white truncate">{doc.name}</h3>
-                        <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
+                        <h3 className="font-semibold text-xs sm:text-sm text-white truncate">{doc.name}</h3>
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-3 text-[11px] sm:text-xs text-slate-400 mt-0.5">
                           <span>{doc.pageCount} page(s)</span>
                           <span>•</span>
                           <span>{formatBytes(doc.fileSize)}</span>
@@ -459,15 +459,15 @@ The ground state energy E_0 = (1/2) * hbar * omega is the zero-point energy, man
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-[11px] font-medium">
+                    <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                      <span className="inline-flex items-center gap-1 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-[10px] sm:text-[11px] font-medium">
                         <CheckCircle2 className="w-3 h-3" />
                         <span>Ready</span>
                       </span>
 
                       <button
                         onClick={() => handleDelete(doc.id)}
-                        className="p-2 text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors"
+                        className="p-1.5 sm:p-2 text-slate-400 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors active:scale-95"
                         title="Delete document"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -489,18 +489,18 @@ The ground state energy E_0 = (1/2) * hbar * omega is the zero-point energy, man
                   Ask a question to test textbook retrieval. The system will search chunks and cite exact pages.
                 </p>
 
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
                     type="text"
                     placeholder="e.g. What is the zero-point energy in the quantum harmonic oscillator?"
                     value={testQuestion}
                     onChange={(e) => setTestQuestion(e.target.value)}
-                    className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                    className="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-white/10 text-base sm:text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   />
                   <button
                     onClick={handleTestRetrieval}
                     disabled={testing || !testQuestion.trim()}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs disabled:opacity-40 transition-all shadow-md shadow-blue-600/20"
+                    className="px-4 py-2.5 sm:py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs disabled:opacity-40 transition-all shadow-md shadow-blue-600/20 active:scale-95 flex-shrink-0"
                   >
                     {testing ? "Retrieving..." : "Query Textbook"}
                   </button>

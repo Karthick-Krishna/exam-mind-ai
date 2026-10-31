@@ -16,12 +16,19 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  viewportFit: "cover",
+  interactiveWidget: "resizes-content",
+  themeColor: "#030712",
 };
 
 export const metadata: Metadata = {
   title: "EXAM MIND AI | Elite Educational AI Tutor & Real-Time Academic Engine",
   description:
     "EXAM MIND AI is an advanced educational AI tutor and academic reasoning engine with Google Gemini-level intelligence, live Google search, textbook RAG, and KaTeX mathematical proofs.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
   keywords: [
     "EXAM MIND AI",
     "Educational AI",

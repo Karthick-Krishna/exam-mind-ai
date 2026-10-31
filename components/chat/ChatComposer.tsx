@@ -7,17 +7,11 @@ import {
   Paperclip,
   Image as ImageIcon,
   BookOpen,
-  Zap,
-  Brain,
   Globe,
   X,
-  FileText,
-  Cpu,
-  ChevronDown,
-  Check,
-  Sparkles
+  FileText
 } from "lucide-react";
-import { RESPONSE_MODES, ResponseMode } from "@/lib/ai/prompts";
+import { ResponseMode } from "@/lib/ai/prompts";
 import { Document } from "@/lib/database/db";
 
 interface ChatComposerProps {
@@ -49,8 +43,6 @@ export function ChatComposer({
 }: ChatComposerProps) {
   const [input, setInput] = useState("");
   const [showDocPicker, setShowDocPicker] = useState(false);
-  const [showModelPicker, setShowModelPicker] = useState(false);
-  const [selectedModel, setSelectedModel] = useState<"auto" | "gpt-120b-oss" | "openai-fast">("auto");
   const [attachedImage, setAttachedImage] = useState<{ name: string; url: string } | null>(null);
   const [isUploadingDoc, setIsUploadingDoc] = useState(false);
 
@@ -83,7 +75,7 @@ export function ChatComposer({
       textareaRef.current.style.height = "auto";
     }
 
-    onSendMessage(textToSend, attachments, selectedModel);
+    onSendMessage(textToSend, attachments, undefined);
 
     // Release submit lock after small timeout to prevent rapid double-clicks
     setTimeout(() => {
@@ -190,147 +182,28 @@ export function ChatComposer({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={
-            currentMode === "QUICK_ANSWER"
-              ? "Ask a question for a direct answer..."
-              : currentMode === "THINKING"
-              ? "Ask a derivation, math problem, or code inquiry..."
-              : "Ask for live Google research & sources..."
-          }
+          placeholder="Ask any question, math theorem, or code problem (Deep Search across Google & live web active)..."
           rows={1}
           className="w-full pt-3 pb-2 px-3.5 sm:px-4 bg-transparent text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none resize-none max-h-36 sm:max-h-48 leading-relaxed"
         />
 
         {/* Toolbar Row */}
         <div className="flex items-center justify-between px-2 sm:px-3 pb-2 sm:pb-2.5 pt-1 border-t border-white/[0.04] gap-1">
-          {/* Left: 3-Mode Selector Pill Toggle */}
-          <div className="flex items-center gap-0.5 sm:gap-1">
-            {RESPONSE_MODES.map((mode) => {
-              const isSelected = mode.id === currentMode;
-              const Icon = mode.id === "QUICK_ANSWER" ? Zap : mode.id === "THINKING" ? Brain : Globe;
-              const shortName = mode.id === "QUICK_ANSWER" ? "Quick" : mode.id === "THINKING" ? "Thinking" : "Search";
-              return (
-                <button
-                  key={mode.id}
-                  type="button"
-                  onClick={() => onSelectMode(mode.id)}
-                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-1 rounded-lg text-xs font-semibold transition-all touch-manipulation ${
-                    isSelected
-                      ? "bg-blue-600/30 text-cyan-300 border border-blue-500/40 shadow-sm"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent"
-                  }`}
-                  title={mode.description}
-                >
-                  <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-cyan-400" : "text-slate-400"}`} />
-                  <span className="hidden min-[480px]:inline">{mode.name}</span>
-                  <span className="inline min-[480px]:hidden text-[11px]">{shortName}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Center: Interactive Manual Model Switcher */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowModelPicker(!showModelPicker)}
-              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg bg-slate-900/90 border border-white/10 hover:border-cyan-500/40 text-[11px] text-slate-300 font-mono transition-all touch-manipulation shadow-sm"
-              title="Click to manually switch AI inference model"
-            >
-              <Cpu className="w-3.5 h-3.5 text-cyan-400 flex-shrink-0" />
-              <span className="font-semibold text-slate-200 truncate max-w-[140px] sm:max-w-none">
-                {selectedModel === "gpt-120b-oss"
-                  ? "GPT 120B OSS"
-                  : selectedModel === "openai-fast"
-                  ? "Fast Academic"
-                  : "Auto: Dual Model"}
-              </span>
-              <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${showModelPicker ? "rotate-180" : ""}`} />
-            </button>
-
-            {showModelPicker && (
-              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 rounded-xl border border-white/15 bg-[#050b18] shadow-2xl p-2 z-50 space-y-1 backdrop-blur-xl">
-                <div className="text-[10px] uppercase font-bold text-slate-400 px-2 py-1 tracking-wider border-b border-white/10">
-                  Switch AI Model
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedModel("auto");
-                    setShowModelPicker(false);
-                  }}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors ${
-                    selectedModel === "auto"
-                      ? "bg-blue-600/30 text-cyan-300 font-medium"
-                      : "text-slate-300 hover:bg-white/5"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                    <div>
-                      <div className="font-semibold">Auto: Smart Dispatch</div>
-                      <div className="text-[10px] text-slate-400">120B for deep/code, Fast for quick</div>
-                    </div>
-                  </div>
-                  {selectedModel === "auto" && <Check className="w-3.5 h-3.5 text-cyan-400" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedModel("gpt-120b-oss");
-                    setShowModelPicker(false);
-                  }}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors ${
-                    selectedModel === "gpt-120b-oss"
-                      ? "bg-blue-600/30 text-cyan-300 font-medium"
-                      : "text-slate-300 hover:bg-white/5"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Brain className="w-3.5 h-3.5 text-purple-400" />
-                    <div>
-                      <div className="font-semibold">GPT 120B OSS</div>
-                      <div className="text-[10px] text-slate-400">Deep Reasoning, Research & Code</div>
-                    </div>
-                  </div>
-                  {selectedModel === "gpt-120b-oss" && <Check className="w-3.5 h-3.5 text-cyan-400" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedModel("openai-fast");
-                    setShowModelPicker(false);
-                  }}
-                  className={`w-full flex items-center justify-between p-2 rounded-lg text-left text-xs transition-colors ${
-                    selectedModel === "openai-fast"
-                      ? "bg-blue-600/30 text-cyan-300 font-medium"
-                      : "text-slate-300 hover:bg-white/5"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <div>
-                      <div className="font-semibold">GPT-OSS Fast Academic</div>
-                      <div className="text-[10px] text-slate-400">Instant Answers & Basic Tasks</div>
-                    </div>
-                  </div>
-                  {selectedModel === "openai-fast" && <Check className="w-3.5 h-3.5 text-cyan-400" />}
-                </button>
-              </div>
-            )}
+          {/* Left: Deep Search Active Badge */}
+          <div className="flex items-center gap-1 sm:gap-1.5 px-2 py-1 rounded-lg bg-blue-950/70 border border-blue-500/30 text-[11px] sm:text-xs font-semibold text-cyan-300 shadow-sm flex-shrink-0">
+            <Globe className="w-3 h-3 text-cyan-400 animate-pulse flex-shrink-0" />
+            <span className="hidden min-[380px]:inline">Deep Search Active</span>
+            <span className="inline min-[380px]:hidden">Deep Search</span>
           </div>
 
           {/* Right: Attachments & Send Action */}
-          <div className="flex items-center gap-1 sm:gap-1.5">
+          <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0">
             {/* Textbook Picker Button */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowDocPicker(!showDocPicker)}
-                className="p-2 sm:p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors relative touch-manipulation"
+                className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors relative touch-manipulation active:scale-95"
                 title="Ground answer in uploaded textbooks (RAG)"
               >
                 <BookOpen className="w-4 h-4" />
@@ -342,42 +215,51 @@ export function ChatComposer({
               </button>
 
               {showDocPicker && (
-                <div className="absolute right-0 bottom-full mb-2 w-[calc(100vw-2rem)] max-w-xs sm:w-72 rounded-xl border border-white/15 bg-[#050b18] shadow-2xl p-3 z-50 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                    <span>Select Textbook (RAG)</span>
-                    <a href="/documents" className="text-cyan-400 hover:underline">
-                      Library +
-                    </a>
-                  </div>
-                  {availableDocuments.length === 0 ? (
-                    <div className="p-3 text-center text-xs text-slate-500">
-                      No textbooks uploaded yet. Use the paperclip icon or visit Library to upload.
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowDocPicker(false)}
+                    aria-hidden="true"
+                  />
+                  <div className="absolute right-0 bottom-full mb-2 w-[calc(100vw-1.5rem)] max-w-xs sm:w-72 rounded-xl border border-white/15 bg-[#050b18] shadow-2xl p-3 z-50 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                      <span>Select Textbook (RAG)</span>
+                      <a href="/documents" className="text-cyan-400 hover:underline">
+                        Library +
+                      </a>
                     </div>
-                  ) : (
-                    availableDocuments.map((doc) => {
-                      const isChecked = selectedDocumentIds.includes(doc.id);
-                      return (
-                        <div
-                          key={doc.id}
-                          onClick={() => onToggleDocument(doc.id)}
-                          className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs border transition-colors ${
-                            isChecked
-                              ? "bg-blue-950/60 border-blue-500/40 text-white"
-                              : "border-white/5 text-slate-400 hover:bg-white/5"
-                          }`}
-                        >
-                          <div className="truncate flex items-center gap-2">
-                            <FileText className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                            <span className="truncate">{doc.name}</span>
-                          </div>
-                          <span className="text-[10px] text-slate-500 font-mono">
-                            {doc.pageCount}p
-                          </span>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+                    {availableDocuments.length === 0 ? (
+                      <div className="p-3 text-center text-xs text-slate-500">
+                        No textbooks uploaded yet. Use the paperclip icon or visit Library to upload.
+                      </div>
+                    ) : (
+                      <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                        {availableDocuments.map((doc) => {
+                          const isChecked = selectedDocumentIds.includes(doc.id);
+                          return (
+                            <div
+                              key={doc.id}
+                              onClick={() => onToggleDocument(doc.id)}
+                              className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs border transition-colors ${
+                                isChecked
+                                  ? "bg-blue-950/60 border-blue-500/40 text-white"
+                                  : "border-white/5 text-slate-400 hover:bg-white/5"
+                              }`}
+                            >
+                              <div className="truncate flex items-center gap-2">
+                                <FileText className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                                <span className="truncate">{doc.name}</span>
+                              </div>
+                              <span className="text-[10px] text-slate-500 font-mono flex-shrink-0">
+                                {doc.pageCount}p
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
@@ -393,7 +275,7 @@ export function ChatComposer({
               type="button"
               disabled={isUploadingDoc}
               onClick={() => docInputRef.current?.click()}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors disabled:opacity-50"
+              className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors disabled:opacity-50 active:scale-95"
               title="Upload PDF or notes to ground in conversation"
             >
               {isUploadingDoc ? (
@@ -414,7 +296,7 @@ export function ChatComposer({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors active:scale-95"
               title="Upload diagram image"
             >
               <ImageIcon className="w-4 h-4" />
@@ -425,17 +307,17 @@ export function ChatComposer({
               <button
                 type="button"
                 onClick={onStop}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg shadow-rose-600/30 transition-all ml-1"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg shadow-rose-600/30 transition-all ml-0.5 active:scale-95"
               >
                 <Square className="w-3.5 h-3.5 fill-current" />
-                <span>Stop</span>
+                <span className="hidden min-[360px]:inline">Stop</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => handleSubmit()}
                 disabled={!input.trim() && !attachedImage}
-                className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-md shadow-blue-600/30 transition-all ml-1"
+                className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-md shadow-blue-600/30 transition-all ml-0.5 active:scale-95"
                 title="Send inquiry"
               >
                 <Send className="w-4 h-4" />

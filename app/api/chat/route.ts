@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addMessage, createConversation, getConversation, getDefaultUser, recordLearningActivity } from "@/lib/database/db";
 import { buildSystemPrompt } from "@/lib/ai/prompts";
-import { createChatCompletionStream, selectDualAiModel } from "@/lib/ai/model-adapter";
-import { formatRetrievedContext, retrieveRelevantPassages } from "@/lib/rag/retrieval";
-import { fetchRealtimeEducationalData, isRealtimeInformationNeeded } from "@/lib/rag/realtime-search";
+import { executeMultiModelStream, routePromptToModel } from "@/lib/ai/model-adapter";
+import { formatRetrievedContext, retrieveRelevantPassages, shouldPerformRag } from "@/lib/rag/retrieval";
+import { classifySearchIntent, fetchRealtimeEducationalData } from "@/lib/rag/realtime-search";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
       conversationId: incomingConvId,
       messages = [],
       prompt,
-      mode = "QUICK_ANSWER",
+      mode = "DEEP_SEARCH",
       documentIds = [],
       model,
       regenerate = false,
@@ -56,62 +56,65 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 2. Dual AI Model Dispatch & Manual Model Override:
-    // - GPT 120B OSS: Used for Deep Search, Thinking, and all Coding/Programming/Math prompts
-    // - Fast Academic Engine: Used for Quick Answer & Basic Tasks
-    // - Explicit manual selection from user takes immediate precedence
-    const dualModel = selectDualAiModel(lastUserPrompt, mode);
-    const chosenModelId = model && model !== "auto" ? model : dualModel.modelId;
-    const displayModelName =
-      model === "gpt-120b-oss"
-        ? "GPT 120B OSS (Manual Selection)"
-        : model === "openai-fast"
-        ? "GPT-OSS Fast Academic (Manual Selection)"
-        : dualModel.displayName;
+    // 2. Intelligent Knowledge Source Determination (Requirement 3):
+    // - Stable general questions (photosynthesis, OS, LMVT, prime number program) -> Model Pretrained Knowledge directly!
+    // - Time-sensitive / current facts (Chief Minister of Tamil Nadu, latest versions) -> Live Web Search across all sites.
+    // - Internal documents / uploaded textbooks -> RAG Knowledge Retrieval.
+    const searchIntent = classifySearchIntent(lastUserPrompt, mode);
+    const isRagNeeded = shouldPerformRag(lastUserPrompt, documentIds);
 
-    // 3. Intelligent Knowledge Retrieval:
-    // - Google & Live Web Search runs on ALL modes (Quick Answer, Thinking, Deep Search)
-    // - In Deep Search, performs multi-pass crawling over 2-3 seconds with full citations
-    const [retrievedPassages, realtimeData] = await Promise.all([
-      retrieveRelevantPassages(
-        lastUserPrompt,
-        documentIds.length > 0 ? documentIds : undefined,
-        3
-      ),
-      fetchRealtimeEducationalData(lastUserPrompt, mode),
-    ]);
+    const retrievalPromises: [Promise<any[]>, Promise<any[]>] = [
+      isRagNeeded
+        ? retrieveRelevantPassages(
+            lastUserPrompt,
+            documentIds.length > 0 ? documentIds : undefined,
+            3
+          )
+        : Promise.resolve([]),
+      searchIntent.needsLiveSearch
+        ? fetchRealtimeEducationalData(lastUserPrompt, mode)
+        : Promise.resolve([]),
+    ];
 
-    let combinedRagContext = "";
+    const [retrievedPassages, realtimeData] = await Promise.all(retrievalPromises);
+
+    let combinedKnowledgeContext = "";
     const citations: any[] = [];
+    const knowledgeSources: string[] = ["Pretrained Knowledge"];
 
-    // Add textbook citations if relevant
+    // Add textbook citations if genuine RAG was performed
     if (retrievedPassages.length > 0) {
-      combinedRagContext += "--- COURSE TEXTBOOK SOURCES ---\n" + formatRetrievedContext(retrievedPassages) + "\n\n";
+      knowledgeSources.push("Document RAG");
+      combinedKnowledgeContext += "--- COURSE TEXTBOOK SOURCES ---\n" + formatRetrievedContext(retrievedPassages) + "\n\n";
       retrievedPassages.forEach((p) => {
         citations.push(p.citation);
       });
     }
 
-    // Add real-time live web & encyclopedic data
+    // Add real-time live web & Google search data scraped across the web
     if (realtimeData.length > 0) {
-      combinedRagContext += "--- REAL-TIME LIVE RESEARCH & ENCYCLOPEDIC KNOWLEDGE ---\n";
+      knowledgeSources.push("Live Web Search");
+      combinedKnowledgeContext += "--- REAL-TIME LIVE RESEARCH & SCRAPED WEB DATA ---\n";
       realtimeData.forEach((item, i) => {
-        combinedRagContext += `[Live Source ${i + 1}: ${item.sourceType} - "${item.title}"]\n${item.snippet}\nLink: ${item.sourceUrl}\n\n`;
+        const domainStr = item.domain ? ` [${item.domain}]` : "";
+        combinedKnowledgeContext += `[Live Source ${i + 1}: ${item.sourceType}${domainStr} - "${item.title}"]\n${item.snippet}\n${
+          item.scrapedContent ? `Scraped Page Text Extract:\n${item.scrapedContent}\n` : ""
+        }Link: ${item.sourceUrl}\n\n`;
         citations.push({
-          documentName: `${item.sourceType}: ${item.title}`,
+          documentName: `${item.sourceType}${domainStr}: ${item.title}`,
           pageNumber: 1,
-          section: "Live Knowledge",
+          section: item.domain || "Live Web",
           excerpt: item.snippet,
-          confidenceScore: 95,
+          confidenceScore: 98,
           sourceUrl: item.sourceUrl,
         });
       });
     }
 
-    // 4. Assemble pedagogical system prompt with response mode and RAG context
+    // 3. Assemble pedagogical system prompt with response mode and knowledge context
     const systemInstruction = buildSystemPrompt({
       mode,
-      documentContext: combinedRagContext,
+      documentContext: combinedKnowledgeContext,
     });
 
     const chatHistory = [
@@ -129,10 +132,17 @@ export async function POST(req: NextRequest) {
       chatHistory.push({ role: "user", content: lastUserPrompt });
     }
 
-    // 5. Create streaming response via open-source model URL API
-    const tokenStream = await createChatCompletionStream(chatHistory, { model: chosenModelId });
+    // 4. Intelligent Backend Model Routing & Controlled Fallback (Requirement 1 & 2):
+    // - Programming, code debugging, math & complex technical reasoning -> Qwen 2.5
+    // - General knowledge, academic explanations, essays & deep search -> GPT-OSS
+    // - Automatic fallback if preferred backend fails
+    const backendSelection = model === "qwen" || model === "qwen-oss" ? "qwen" : model === "gpt-oss" ? "gpt-oss" : "auto";
+    const { stream: tokenStream, modelUsed: displayModelName } = await executeMultiModelStream(chatHistory, {
+      mode,
+      backend: backendSelection,
+    });
 
-    // Track learning progress asynchronously
+    // Track learning activity asynchronously
     recordLearningActivity({
       userId: user.id,
       subject: "Academic Exploration",
@@ -140,7 +150,7 @@ export async function POST(req: NextRequest) {
       scoreGain: 2,
     }).catch(console.error);
 
-    // Stream to client with SSE headers and persist assistant message when complete
+    // Stream to client with SSE headers and persist exactly ONE assistant message when complete
     const decoder = new TextDecoder();
     let accumulatedText = "";
 
@@ -150,7 +160,6 @@ export async function POST(req: NextRequest) {
         controller.enqueue(chunk);
       },
       async flush() {
-        // Persist full assistant response into DB with citations
         try {
           await addMessage({
             conversationId,
@@ -172,6 +181,7 @@ export async function POST(req: NextRequest) {
         "X-Conversation-Id": conversationId,
         "X-Model-Used": displayModelName,
         "X-Citations": encodeURIComponent(JSON.stringify(citations)),
+        "X-Knowledge-Sources": encodeURIComponent(JSON.stringify(knowledgeSources)),
         "Cache-Control": "no-cache, no-transform",
       },
     });

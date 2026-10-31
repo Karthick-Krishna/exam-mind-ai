@@ -142,7 +142,16 @@ export default function LandingPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] radiant-glow pointer-events-none opacity-50"></div>
         <div className="absolute top-1/3 right-10 w-96 h-96 radiant-cyan-glow pointer-events-none opacity-20"></div>
 
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10 text-center space-y-6 sm:space-y-8">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 relative z-10 text-center space-y-6 sm:space-y-8 flex flex-col items-center">
+          {/* Logo Crest */}
+          <div className="relative w-20 h-20 sm:w-28 sm:h-28 rounded-3xl overflow-hidden shadow-2xl shadow-blue-500/40 border border-blue-500/40 p-0.5 bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400">
+            <img
+              src="/logo.png"
+              alt="EXAM MIND AI Logo"
+              className="w-full h-full object-cover rounded-[22px]"
+            />
+          </div>
+
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-blue-950/70 border border-blue-500/30 text-cyan-300 text-[11px] sm:text-xs font-medium shadow-xl shadow-blue-900/20 max-w-full">
             <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 animate-pulse flex-shrink-0" />
