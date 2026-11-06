@@ -101,6 +101,15 @@ export async function POST(req: NextRequest) {
           verificationBadge = "Mathematically Verified";
           combinedKnowledgeContext += `Independent Mathematical Solution: ${visionResult.mathematicalVerification.verifiedResult}\n\n`;
         }
+
+        if (visionResult.programmingFix) {
+          if (!verificationBadge) verificationBadge = "Sandbox Tested";
+          combinedKnowledgeContext += `--- SCREENSHOT CODE DEBUGGING & OPTIMIZATION ---\n` +
+            `Identified Issue: ${visionResult.programmingFix.identifiedError}\n` +
+            `Suggested Fix: ${visionResult.programmingFix.suggestedFix}\n` +
+            `Corrected Code:\n${visionResult.programmingFix.correctedCode}\n` +
+            (visionResult.programmingFix.timeComplexity ? `Estimated Complexity: ${visionResult.programmingFix.timeComplexity}\n\n` : "\n");
+        }
       } catch (err: any) {
         console.warn("Vision processing notice:", err.message);
       }

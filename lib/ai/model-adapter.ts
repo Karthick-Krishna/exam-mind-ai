@@ -313,10 +313,10 @@ export function resolveTargetModelName(
   const isOllama = endpointUrl.includes("11434") || endpointUrl.includes("ollama");
 
   if (hasVision) {
-    if (isPollinations) return "openai-large";
     if (isGroq) return "llama-3.2-11b-vision-preview";
     if (isOpenRouter) return "qwen/qwen-2.5-vl-72b-instruct";
     if (isOllama) return "llava";
+    if (endpointUrl.includes("openai.com")) return "gpt-4o-mini";
   }
 
   if (backend === "qwen") {
@@ -598,6 +598,24 @@ export async function generateChatCompletion(
     const { url: endpoint } = resolveInferenceEndpoint(config.baseUrl);
     const actualModel = resolveTargetModelName(config.backend, config.model, endpoint, hasVision);
 
+    const endpointSupportsVision =
+      !endpoint.includes("pollinations") &&
+      (endpoint.includes("openrouter") ||
+        endpoint.includes("groq") ||
+        endpoint.includes("openai") ||
+        endpoint.includes("11434") ||
+        Boolean(process.env.VISION_BASE_URL));
+
+    const outgoingMessages = endpointSupportsVision
+      ? messages
+      : messages.map((m) => {
+          if (typeof m.content === "string") return m;
+          return {
+            role: m.role,
+            content: extractTextFromContent(m.content) || "Analyze the uploaded visual media.",
+          };
+        });
+
     const res = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -606,7 +624,7 @@ export async function generateChatCompletion(
       },
       body: JSON.stringify({
         model: actualModel,
-        messages,
+        messages: outgoingMessages,
         temperature: options.temperature ?? 0.2,
         max_tokens: options.max_tokens ?? 2048,
         stream: false,
@@ -658,6 +676,24 @@ async function callHttpInferenceStream(
   const actualModel = resolveTargetModelName(config.backend, config.model, endpoint, options.hasVision);
   const controller = new AbortController();
 
+  const endpointSupportsVision =
+    !endpoint.includes("pollinations") &&
+    (endpoint.includes("openrouter") ||
+      endpoint.includes("groq") ||
+      endpoint.includes("openai") ||
+      endpoint.includes("11434") ||
+      Boolean(process.env.VISION_BASE_URL));
+
+  const outgoingMessages = endpointSupportsVision
+    ? messages
+    : messages.map((m) => {
+        if (typeof m.content === "string") return m;
+        return {
+          role: m.role,
+          content: extractTextFromContent(m.content) || "Analyze the uploaded visual media.",
+        };
+      });
+
   // 25s connection & token window
   const timeoutId = setTimeout(() => controller.abort(), 25000);
 
@@ -671,7 +707,7 @@ async function callHttpInferenceStream(
       },
       body: JSON.stringify({
         model: actualModel,
-        messages,
+        messages: outgoingMessages,
         temperature: options.temperature ?? 0.2,
         top_p: options.top_p ?? 0.9,
         max_tokens: options.max_tokens ?? 4096,

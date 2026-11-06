@@ -138,7 +138,13 @@ export default function ChatPage() {
     modelOverride?: string,
     isRegeneration = false
   ) => {
-    if (!text.trim() || isStreaming || isSubmittingRef.current) return;
+    const effectiveText =
+      text.trim() ||
+      (attachments && attachments.length > 0
+        ? "Please analyze this uploaded image in comprehensive detail (extract text, mathematics, code, or visual diagrams and explain/solve step-by-step)."
+        : "");
+
+    if (!effectiveText || isStreaming || isSubmittingRef.current) return;
 
     isSubmittingRef.current = true;
     setIsStreaming(true);
@@ -152,7 +158,7 @@ export default function ChatPage() {
         id: "user-" + now,
         conversationId: activeConversationId || "temp",
         role: "user",
-        content: text,
+        content: text.trim() || "Uploaded Visual for Analysis",
         attachments,
         createdAt: new Date().toISOString(),
       };
@@ -183,7 +189,7 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           conversationId: activeConversationId,
-          prompt: text,
+          prompt: effectiveText,
           mode: currentMode,
           model: modelOverride && modelOverride !== "auto" ? modelOverride : undefined,
           documentIds: selectedDocumentIds,

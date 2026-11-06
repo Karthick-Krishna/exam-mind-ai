@@ -64,7 +64,12 @@ export function ChatComposer({
     if ((!input.trim() && !attachedImage) || isStreaming || isSubmittingRef.current) return;
 
     isSubmittingRef.current = true;
-    const textToSend = input.trim();
+    const textToSend =
+      input.trim() ||
+      (attachedImage
+        ? "Please analyze this uploaded image in comprehensive detail (extract text, mathematics, code, or visual diagrams and explain/solve step-by-step)."
+        : "");
+
     const attachments = attachedImage
       ? [{ type: "image", data: attachedImage.url, name: attachedImage.name }]
       : undefined;
@@ -137,12 +142,23 @@ export function ChatComposer({
     <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 pb-safe pt-1.5 sm:pt-2">
       {/* Attached Image Preview */}
       {attachedImage && (
-        <div className="mb-2 p-2 rounded-xl bg-slate-900/80 border border-white/10 inline-flex items-center gap-2 max-w-full">
-          <ImageIcon className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-          <span className="text-xs text-slate-200 truncate max-w-[200px] sm:max-w-xs">{attachedImage.name}</span>
+        <div className="mb-2 p-1.5 sm:p-2 rounded-xl bg-slate-900/90 border border-cyan-500/30 inline-flex items-center gap-2 max-w-full shadow-lg shadow-black/50">
+          <img
+            src={attachedImage.url}
+            alt={attachedImage.name}
+            className="w-8 h-8 sm:w-10 sm:h-10 object-cover rounded-lg border border-white/10 flex-shrink-0"
+          />
+          <div className="flex flex-col min-w-0 pr-1">
+            <span className="text-[11px] sm:text-xs text-slate-200 font-medium truncate max-w-[180px] sm:max-w-xs">
+              {attachedImage.name}
+            </span>
+            <span className="text-[10px] text-cyan-400 font-mono">Ready for Multimodal Vision</span>
+          </div>
           <button
+            type="button"
             onClick={() => setAttachedImage(null)}
-            className="p-1 text-slate-400 hover:text-white rounded flex-shrink-0"
+            className="p-1 text-slate-400 hover:text-white rounded flex-shrink-0 ml-1 active:scale-90"
+            title="Remove attachment"
           >
             <X className="w-3.5 h-3.5" />
           </button>
