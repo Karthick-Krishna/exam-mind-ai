@@ -94,11 +94,11 @@ export function WelcomeScreen({
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto px-2.5 sm:px-6 md:px-8 py-3 sm:py-8 flex flex-col items-center justify-center min-h-[60vh] sm:min-h-[80vh]">
-      <div className="max-w-4xl w-full space-y-4 sm:space-y-6 text-center">
-        {/* Brand Logo & Headline */}
-        <div className="space-y-2.5 sm:space-y-4 flex flex-col items-center">
-          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shadow-2xl shadow-blue-500/30 border border-blue-500/40 p-0.5 bg-gradient-to-br from-blue-600 via-indigo-600 to-cyan-400">
+    <div className="flex-1 overflow-y-auto px-3 sm:px-6 md:px-8 py-6 sm:py-12 flex flex-col items-center justify-center min-h-[60vh] sm:min-h-[75vh]">
+      <div className="max-w-3xl w-full space-y-6 sm:space-y-8 text-center">
+        {/* ChatGPT Style Brand Emblem & Headline */}
+        <div className="space-y-3 sm:space-y-4 flex flex-col items-center">
+          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/10 p-0.5 bg-gradient-to-br from-zinc-800 to-zinc-900 group hover:border-emerald-500/40 transition-all">
             <img
               src="/logo.png"
               alt="EXAM MIND AI Logo"
@@ -106,60 +106,48 @@ export function WelcomeScreen({
             />
           </div>
 
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-blue-950/70 border border-blue-500/30 text-cyan-300 text-[10px] sm:text-xs font-medium shadow-lg shadow-blue-900/20 max-w-full">
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400 animate-pulse flex-shrink-0" />
-            <span className="truncate">EXAM MIND AI • Created by CoralGenz Global</span>
-          </div>
-
-          <h1 className="text-xl sm:text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-snug sm:leading-tight">
-            Master Any Exam or Topic. <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-300 to-indigo-400">Pure Intelligence.</span>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white tracking-tight">
+            What can I help with today?
           </h1>
 
-          <p className="max-w-2xl mx-auto text-xs sm:text-sm md:text-base text-slate-400 leading-relaxed px-1">
-            Proprietary multimodal neural architecture engineered by CoralGenz Global. Advanced real-time deep web research across Google, deterministic mathematics verification, and full-stack software intelligence.
-          </p>
-        </div>
-
-        {/* Deep Search Engine Permanent Active Indicator */}
-        <div className="pt-0.5 pb-0.5 flex justify-center">
-          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl bg-blue-950/70 border border-blue-500/30 text-[11px] sm:text-xs font-semibold text-cyan-300 shadow-md">
-            <Globe className="w-3.5 h-3.5 text-cyan-400 animate-pulse flex-shrink-0" />
-            <span className="truncate">Deep Search Active Across All Sites on Google</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2f2f2f]/80 border border-white/10 text-zinc-300 text-xs shadow-md">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-medium">ExamMind AI • Engineered by CoralGenz Global</span>
           </div>
         </div>
 
-        {/* Suggested Queries Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3.5 pt-1 sm:pt-4 text-left">
+        {/* Suggested Queries Grid - Clean ChatGPT Glassmorphic Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5 pt-2 text-left">
           {suggestedCards.map((card, idx) => {
             const Icon = card.icon;
             return (
               <div
                 key={idx}
                 onClick={() => onSelectPrompt(card.prompt, card.mode)}
-                className="group p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/10 bg-slate-950/60 hover:bg-slate-900/80 hover:border-blue-500/40 cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2 sm:space-y-3 shadow-lg active:scale-[0.98]"
+                className="group p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-[#2f2f2f]/60 hover:bg-[#2f2f2f] hover:border-white/20 backdrop-blur-xl cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5 shadow-lg shadow-black/20 active:scale-[0.98]"
               >
-                <div className="space-y-1.5 sm:space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <div
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-br ${card.color} border border-white/10 flex items-center justify-center flex-shrink-0`}
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center flex-shrink-0 text-white group-hover:text-emerald-400 group-hover:bg-emerald-500/10 transition-colors"
                     >
-                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${card.accent}`} />
+                      <Icon className="w-4 h-4" />
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5">
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/5">
                       {card.badge}
                     </span>
                   </div>
-                  <h3 className="font-semibold text-xs sm:text-sm text-slate-200 group-hover:text-white transition-colors">
+                  <h3 className="font-medium text-xs sm:text-sm text-zinc-200 group-hover:text-white transition-colors">
                     {card.title}
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] sm:text-xs text-zinc-400 line-clamp-2 leading-relaxed">
                     {card.desc}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-1.5 border-t border-white/5 text-[10px] sm:text-[11px] font-medium text-slate-500 group-hover:text-cyan-400 transition-colors">
-                  <span>Explore topic</span>
-                  <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 group-hover:translate-x-1 transition-transform" />
+                <div className="flex items-center justify-between pt-1.5 border-t border-white/5 text-[10px] sm:text-[11px] font-medium text-zinc-500 group-hover:text-emerald-400 transition-colors">
+                  <span>Ask ExamMind</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
             );

@@ -16,29 +16,29 @@ export function ThinkingIndicator({ hasTextbookGrounding }: ThinkingIndicatorPro
   const Icon = hasTextbookGrounding ? BookOpen : Globe;
 
   return (
-    <div className="flex items-center gap-2 sm:gap-3 py-1.5 sm:py-2 px-2.5 sm:px-3.5 rounded-xl bg-blue-950/30 border border-blue-500/20 backdrop-blur-md w-fit max-w-[calc(100vw-3rem)] my-2 shadow-sm animate-fadeIn">
+    <div className="flex items-center gap-2 sm:gap-2.5 py-1.5 px-3 rounded-full bg-[#2f2f2f]/85 border border-white/10 backdrop-blur-xl w-fit max-w-[calc(100vw-3rem)] my-2 shadow-md animate-fadeIn">
       {/* Icon */}
-      <div className="w-5 h-5 rounded-md bg-blue-500/20 text-cyan-400 flex items-center justify-center flex-shrink-0">
-        <Icon className="w-3.5 h-3.5 animate-pulse" />
+      <div className="w-5 h-5 rounded-full bg-[#10a37f]/20 text-[#10a37f] flex items-center justify-center flex-shrink-0">
+        <Icon className="w-3 h-3 animate-pulse" />
       </div>
 
       {/* Label */}
-      <span className="text-[11px] sm:text-xs font-medium text-slate-300 truncate">
+      <span className="text-[11px] sm:text-xs font-medium text-zinc-300 truncate">
         {label}
       </span>
 
       {/* Three Sequential Bouncing Dots */}
-      <div className="flex items-center gap-1 pl-0.5 sm:pl-1 flex-shrink-0">
+      <div className="flex items-center gap-1 pl-1 flex-shrink-0">
         <span
-          className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-cyan-400 animate-bounce"
+          className="w-1.5 h-1.5 rounded-full bg-[#10a37f] animate-bounce"
           style={{ animationDelay: "0ms", animationDuration: "1000ms" }}
         />
         <span
-          className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-cyan-400 animate-bounce"
+          className="w-1.5 h-1.5 rounded-full bg-[#10a37f] animate-bounce"
           style={{ animationDelay: "200ms", animationDuration: "1000ms" }}
         />
         <span
-          className="w-1 sm:w-1.5 h-1 sm:h-1.5 rounded-full bg-cyan-400 animate-bounce"
+          className="w-1.5 h-1.5 rounded-full bg-[#10a37f] animate-bounce"
           style={{ animationDelay: "400ms", animationDuration: "1000ms" }}
         />
       </div>

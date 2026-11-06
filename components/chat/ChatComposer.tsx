@@ -9,7 +9,9 @@ import {
   BookOpen,
   Globe,
   X,
-  FileText
+  FileText,
+  ArrowUp,
+  Plus
 } from "lucide-react";
 import { ResponseMode } from "@/lib/ai/prompts";
 import { Document } from "@/lib/database/db";
@@ -139,25 +141,25 @@ export function ChatComposer({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-2 sm:px-4 pb-safe pt-1.5 sm:pt-2">
+    <div className="w-full max-w-3xl mx-auto px-2.5 sm:px-4 pb-2 sm:pb-3 pt-1">
       {/* Attached Image Preview */}
       {attachedImage && (
-        <div className="mb-2 p-1.5 sm:p-2 rounded-xl bg-slate-900/90 border border-cyan-500/30 inline-flex items-center gap-2 max-w-full shadow-lg shadow-black/50">
+        <div className="mb-2 p-1.5 sm:p-2 rounded-2xl bg-[#2f2f2f]/90 border border-white/15 inline-flex items-center gap-2 max-w-full shadow-lg shadow-black/40 backdrop-blur-xl">
           <img
             src={attachedImage.url}
             alt={attachedImage.name}
-            className="w-8 h-8 sm:w-10 sm:h-10 object-cover rounded-lg border border-white/10 flex-shrink-0"
+            className="w-8 h-8 sm:w-10 sm:h-10 object-cover rounded-xl border border-white/10 flex-shrink-0"
           />
           <div className="flex flex-col min-w-0 pr-1">
-            <span className="text-[11px] sm:text-xs text-slate-200 font-medium truncate max-w-[180px] sm:max-w-xs">
+            <span className="text-[11px] sm:text-xs text-zinc-200 font-medium truncate max-w-[180px] sm:max-w-xs">
               {attachedImage.name}
             </span>
-            <span className="text-[10px] text-cyan-400 font-mono">Ready for Multimodal Vision</span>
+            <span className="text-[10px] text-emerald-400 font-mono">Multimodal Vision Ready</span>
           </div>
           <button
             type="button"
             onClick={() => setAttachedImage(null)}
-            className="p-1 text-slate-400 hover:text-white rounded flex-shrink-0 ml-1 active:scale-90"
+            className="p-1 text-zinc-400 hover:text-white rounded-full flex-shrink-0 ml-1 active:scale-90"
             title="Remove attachment"
           >
             <X className="w-3.5 h-3.5" />
@@ -168,8 +170,8 @@ export function ChatComposer({
       {/* Selected Textbooks Grounding Badges */}
       {selectedDocumentIds.length > 0 && (
         <div className="mb-2 flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-cyan-400 font-medium flex items-center gap-1 text-[11px] sm:text-xs">
-            <BookOpen className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="text-zinc-400 font-medium flex items-center gap-1 text-[11px] sm:text-xs">
+            <BookOpen className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
             <span>Grounded in {selectedDocumentIds.length} doc{selectedDocumentIds.length > 1 ? "s" : ""}:</span>
           </span>
           <div className="flex flex-wrap gap-1">
@@ -178,7 +180,7 @@ export function ChatComposer({
               return (
                 <span
                   key={id}
-                  className="px-2 py-0.5 rounded-md bg-blue-950/70 border border-blue-500/30 text-blue-300 text-[10px] sm:text-[11px] flex items-center gap-1 max-w-[140px] truncate"
+                  className="px-2.5 py-0.5 rounded-full bg-[#2f2f2f] border border-white/10 text-zinc-300 text-[10px] sm:text-[11px] flex items-center gap-1 max-w-[140px] truncate"
                 >
                   <span className="truncate">{doc?.name || "Textbook"}</span>
                   <button onClick={() => onToggleDocument(id)}>
@@ -191,94 +193,22 @@ export function ChatComposer({
         </div>
       )}
 
-      {/* Main Composer Box */}
-      <div className="relative rounded-2xl border border-white/10 bg-[#070e1e]/95 backdrop-blur-xl shadow-2xl focus-within:border-blue-500/50 focus-within:shadow-blue-500/10 transition-all">
+      {/* Iconic ChatGPT Pill Composer Box */}
+      <div className="relative rounded-[26px] border border-white/[0.14] bg-[#2f2f2f]/90 hover:bg-[#2f2f2f] focus-within:bg-[#2f2f2f] focus-within:border-white/25 backdrop-blur-2xl shadow-2xl transition-all p-2 sm:p-2.5 space-y-1.5">
         <textarea
           ref={textareaRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask any question, research topic, or code problem (Deep Search across Google & live web active)..."
+          placeholder="Ask anything, research a topic, or solve code..."
           rows={1}
-          className="w-full pt-3 pb-2 px-3.5 sm:px-4 bg-transparent text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none resize-none max-h-36 sm:max-h-48 leading-relaxed"
+          className="w-full pt-1.5 pb-1 px-3 bg-transparent text-base sm:text-[15px] text-white placeholder-zinc-400 focus:outline-none resize-none max-h-36 sm:max-h-48 leading-relaxed"
         />
 
         {/* Toolbar Row */}
-        <div className="flex items-center justify-between px-2 sm:px-3 pb-2 sm:pb-2.5 pt-1 border-t border-white/[0.04] gap-1">
-          {/* Left: Deep Search Active Badge */}
-          <div className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 rounded-lg bg-blue-950/70 border border-blue-500/30 text-[11px] sm:text-xs font-semibold text-cyan-300 shadow-sm flex-shrink-0">
-            <Globe className="w-3.5 h-3.5 text-cyan-400 animate-pulse flex-shrink-0" />
-            <span className="hidden min-[380px]:inline">Deep Search Active</span>
-            <span className="inline min-[380px]:hidden">Deep Search</span>
-          </div>
-
-          {/* Right: Attachments & Send Action */}
-          <div className="flex items-center gap-0.5 sm:gap-1.5 flex-shrink-0">
-            {/* Textbook Picker Button */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowDocPicker(!showDocPicker)}
-                className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors relative touch-manipulation active:scale-95"
-                title="Ground answer in uploaded textbooks (RAG)"
-              >
-                <BookOpen className="w-4 h-4" />
-                {selectedDocumentIds.length > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-cyan-500 text-black font-bold text-[9px] flex items-center justify-center">
-                    {selectedDocumentIds.length}
-                  </span>
-                )}
-              </button>
-
-              {showDocPicker && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setShowDocPicker(false)}
-                    aria-hidden="true"
-                  />
-                  <div className="absolute right-0 bottom-full mb-2 w-[calc(100vw-1.5rem)] max-w-xs sm:w-72 rounded-xl border border-white/15 bg-[#050b18] shadow-2xl p-3 z-50 space-y-2">
-                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                      <span>Select Textbook (RAG)</span>
-                      <a href="/documents" className="text-cyan-400 hover:underline">
-                        Library +
-                      </a>
-                    </div>
-                    {availableDocuments.length === 0 ? (
-                      <div className="p-3 text-center text-xs text-slate-500">
-                        No textbooks uploaded yet. Use the paperclip icon or visit Library to upload.
-                      </div>
-                    ) : (
-                      <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
-                        {availableDocuments.map((doc) => {
-                          const isChecked = selectedDocumentIds.includes(doc.id);
-                          return (
-                            <div
-                              key={doc.id}
-                              onClick={() => onToggleDocument(doc.id)}
-                              className={`flex items-center justify-between p-2 rounded-lg cursor-pointer text-xs border transition-colors ${
-                                isChecked
-                                  ? "bg-blue-950/60 border-blue-500/40 text-white"
-                                  : "border-white/5 text-slate-400 hover:bg-white/5"
-                              }`}
-                            >
-                              <div className="truncate flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                                <span className="truncate">{doc.name}</span>
-                              </div>
-                              <span className="text-[10px] text-slate-500 font-mono flex-shrink-0">
-                                {doc.pageCount}p
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-
+        <div className="flex items-center justify-between px-1 sm:px-2 pt-0.5 gap-1.5">
+          {/* Left: Attachments & Deep Search Active Badge */}
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
             {/* Document Upload Input (.pdf, .txt, .docx, .md) */}
             <input
               type="file"
@@ -291,11 +221,11 @@ export function ChatComposer({
               type="button"
               disabled={isUploadingDoc}
               onClick={() => docInputRef.current?.click()}
-              className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors disabled:opacity-50 active:scale-95"
+              className="p-1.5 sm:p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors disabled:opacity-50 active:scale-95"
               title="Upload PDF or notes to ground in conversation"
             >
               {isUploadingDoc ? (
-                <span className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin inline-block" />
+                <span className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin inline-block" />
               ) : (
                 <Paperclip className="w-4 h-4" />
               )}
@@ -312,36 +242,114 @@ export function ChatComposer({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="p-1.5 sm:p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors active:scale-95"
-              title="Upload diagram image"
+              className="p-1.5 sm:p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors active:scale-95"
+              title="Upload image or screenshot"
             >
               <ImageIcon className="w-4 h-4" />
             </button>
 
-            {/* Send or Stop Button */}
+            {/* Textbook Picker Button */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowDocPicker(!showDocPicker)}
+                className="p-1.5 sm:p-2 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors relative touch-manipulation active:scale-95"
+                title="Ground answer in uploaded textbooks (RAG)"
+              >
+                <BookOpen className="w-4 h-4" />
+                {selectedDocumentIds.length > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 text-black font-bold text-[9px] flex items-center justify-center">
+                    {selectedDocumentIds.length}
+                  </span>
+                )}
+              </button>
+
+              {showDocPicker && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowDocPicker(false)}
+                    aria-hidden="true"
+                  />
+                  <div className="absolute left-0 bottom-full mb-2 w-[calc(100vw-1.5rem)] max-w-xs sm:w-72 rounded-2xl border border-white/15 bg-[#1e1e1e] shadow-2xl p-3 z-50 space-y-2 backdrop-blur-2xl">
+                    <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                      <span>Select Textbook (RAG)</span>
+                      <a href="/documents" className="text-emerald-400 hover:underline">
+                        Library +
+                      </a>
+                    </div>
+                    {availableDocuments.length === 0 ? (
+                      <div className="p-3 text-center text-xs text-zinc-500">
+                        No textbooks uploaded yet. Use the paperclip icon or visit Library to upload.
+                      </div>
+                    ) : (
+                      <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                        {availableDocuments.map((doc) => {
+                          const isChecked = selectedDocumentIds.includes(doc.id);
+                          return (
+                            <div
+                              key={doc.id}
+                              onClick={() => onToggleDocument(doc.id)}
+                              className={`flex items-center justify-between p-2 rounded-xl cursor-pointer text-xs border transition-colors ${
+                                isChecked
+                                  ? "bg-[#2f2f2f] border-emerald-500/40 text-white"
+                                  : "border-white/5 text-zinc-400 hover:bg-white/5"
+                              }`}
+                            >
+                              <div className="truncate flex items-center gap-2">
+                                <FileText className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                                <span className="truncate">{doc.name}</span>
+                              </div>
+                              <span className="text-[10px] text-zinc-500 font-mono flex-shrink-0">
+                                {doc.pageCount}p
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Deep Search Active Pill */}
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-medium text-zinc-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="hidden min-[420px]:inline">Deep Search</span>
+            </div>
+          </div>
+
+          {/* Right: The Iconic ChatGPT Circular Send / Stop Button */}
+          <div className="flex items-center flex-shrink-0">
             {isStreaming ? (
               <button
                 type="button"
                 onClick={onStop}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-lg shadow-rose-600/30 transition-all ml-0.5 active:scale-95"
+                className="w-8 h-8 rounded-full bg-white text-black hover:opacity-90 flex items-center justify-center transition-all shadow-md active:scale-95"
+                title="Stop generating"
               >
                 <Square className="w-3.5 h-3.5 fill-current" />
-                <span className="hidden min-[360px]:inline">Stop</span>
               </button>
             ) : (
               <button
                 type="button"
                 onClick={() => handleSubmit()}
                 disabled={!input.trim() && !attachedImage}
-                className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:pointer-events-none text-white shadow-md shadow-blue-600/30 transition-all ml-0.5 active:scale-95"
-                title="Send inquiry"
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-95 disabled:cursor-not-allowed bg-white text-black hover:opacity-90 disabled:bg-[#424242] disabled:text-[#8e8e8e] shadow-md"
+                title="Send message"
               >
-                <Send className="w-4 h-4" />
+                <ArrowUp className="w-4 h-4 stroke-[2.5]" />
               </button>
             )}
           </div>
         </div>
       </div>
+
+      {/* ChatGPT Disclaimer */}
+      <p className="text-[11px] text-zinc-500 text-center pt-2 select-none">
+        ExamMind AI can make mistakes. Verify important info. Engineered by CoralGenz Global.
+      </p>
     </div>
   );
 }
