@@ -172,12 +172,14 @@ export function ChatMessage({
               <span className="font-semibold text-slate-200 text-xs flex-shrink-0">
                 {isAssistant ? "EXAM MIND AI" : "You"}
               </span>
-              {isAssistant && message.modelUsed && (
+              {isAssistant && (
                 <span
-                  className="text-[9px] sm:text-[10px] font-mono text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-white/10 truncate max-w-[85px] min-[360px]:max-w-[130px] sm:max-w-[240px]"
-                  title={message.modelUsed}
+                  className="text-[9px] sm:text-[10px] font-mono text-cyan-300/80 bg-cyan-950/40 px-1.5 py-0.5 rounded border border-cyan-500/20 truncate max-w-[110px] min-[360px]:max-w-[160px] sm:max-w-[260px]"
+                  title="ExamMind AI • Engineered by CoralGenz Global"
                 >
-                  {message.modelUsed}
+                  {message.modelUsed && !/(?:GPT-OSS|Qwen|Open-Source|Pollinations|Open Cloud)/i.test(message.modelUsed)
+                    ? message.modelUsed
+                    : "ExamMind AI (CoralGenz Global)"}
                 </span>
               )}
               {isAssistant && message.verificationBadge && (

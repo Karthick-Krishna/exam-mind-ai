@@ -14,7 +14,7 @@ export interface GenerateQuizParams {
 }
 
 /**
- * Generates an academic quiz using live open-source LLM inference
+ * Generates an academic quiz using ExamMind Neural Engine inference
  */
 export async function generateAcademicQuiz(params: GenerateQuizParams): Promise<Quiz> {
   const count = params.questionCount || 5;
@@ -29,7 +29,7 @@ export async function generateAcademicQuiz(params: GenerateQuizParams): Promise<
 
   let questions: QuizQuestion[] = [];
 
-  // Try generating with live open-source LLM
+  // Try generating with ExamMind Neural Engine
   try {
     const prompt = `You are an elite academic tutor and examiner.
 Generate exactly ${count} high-quality questions for:

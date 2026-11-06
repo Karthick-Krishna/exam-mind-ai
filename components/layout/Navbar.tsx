@@ -46,7 +46,7 @@ export function Navbar() {
               </span>
             </div>
             <span className="text-[10px] sm:text-[11px] text-slate-400 tracking-wide hidden min-[540px]:inline truncate">
-              Universal Academic Intelligence
+              Engineered by CoralGenz Global
             </span>
           </div>
         </Link>
@@ -83,7 +83,7 @@ export function Navbar() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-[11px] font-mono text-slate-300">Open-Source Engine</span>
+            <span className="text-[11px] font-mono text-cyan-300">CoralGenz Neural Engine</span>
           </Link>
 
           <Link

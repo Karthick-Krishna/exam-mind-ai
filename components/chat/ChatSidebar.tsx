@@ -154,12 +154,16 @@ export function ChatSidebar({
       </div>
 
       {/* Bottom Info */}
-      <div className="p-3 pb-safe border-t border-white/[0.08] bg-slate-950/40 text-xs space-y-2">
+      <div className="p-3 pb-safe border-t border-white/[0.08] bg-slate-950/40 text-xs space-y-1.5">
         <div className="flex items-center justify-between text-slate-400 px-1">
           <span className="text-[11px]">Active Mode</span>
           <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-1.5 py-0.5 rounded border border-cyan-500/20">
             {selectedMode.replace(/_/g, " ")}
           </span>
+        </div>
+        <div className="flex items-center justify-between text-slate-500 px-1 text-[10px]">
+          <span>Architecture</span>
+          <span className="font-mono text-slate-400">CoralGenz Global</span>
         </div>
       </div>
     </div>

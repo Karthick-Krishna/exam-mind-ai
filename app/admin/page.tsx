@@ -162,7 +162,7 @@ export default function AdminPage() {
               </h1>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Independent inference endpoints for GPT-OSS and Qwen 2.5, multi-source web search, and pgvector RAG.
+              Dedicated neural inference clusters engineered by CoralGenz Global, real-time Google search synthesis, and pgvector RAG.
             </p>
           </div>
 
@@ -178,12 +178,12 @@ export default function AdminPage() {
 
         {/* 4 Dual-Model & System Status Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {/* Card 1: GPT-OSS Status */}
+          {/* Card 1: ExamMind Core Status */}
           <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2 relative overflow-hidden">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
               <span className="flex items-center gap-1.5 font-bold text-slate-200">
                 <Cpu className="w-3.5 h-3.5 text-cyan-400" />
-                Model 1: GPT-OSS
+                Engine 1: ExamMind Core
               </span>
               <button
                 type="button"
@@ -212,12 +212,12 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Card 2: Qwen 2.5 Status */}
+          {/* Card 2: ExamMind Quantum Status */}
           <div className="p-5 rounded-2xl border border-white/10 bg-slate-950/60 space-y-2 relative overflow-hidden">
             <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
               <span className="flex items-center gap-1.5 font-bold text-slate-200">
                 <Brain className="w-3.5 h-3.5 text-purple-400" />
-                Model 2: Qwen 2.5
+                Engine 2: ExamMind Quantum
               </span>
               <button
                 type="button"
@@ -288,7 +288,7 @@ export default function AdminPage() {
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
             >
-              <div className="font-semibold text-cyan-300">Public Open Cloud (Free)</div>
+              <div className="font-semibold text-cyan-300">CoralGenz Standard Inference Cluster</div>
               <div className="text-[11px] text-slate-400 truncate mt-0.5">https://text.pollinations.ai</div>
             </button>
 
@@ -301,7 +301,7 @@ export default function AdminPage() {
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
             >
-              <div className="font-semibold text-amber-300">Local Ollama Cluster</div>
+              <div className="font-semibold text-amber-300">CoralGenz On-Premise Cluster</div>
               <div className="text-[11px] text-slate-400 truncate mt-0.5">http://localhost:11434/v1</div>
             </button>
 
@@ -314,7 +314,7 @@ export default function AdminPage() {
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
             >
-              <div className="font-semibold text-emerald-300">Groq High-Speed Cloud</div>
+              <div className="font-semibold text-emerald-300">CoralGenz Ultra-Low Latency Cluster</div>
               <div className="text-[11px] text-slate-400 truncate mt-0.5">https://api.groq.com/openai/v1</div>
             </button>
 
@@ -327,7 +327,7 @@ export default function AdminPage() {
                   : "bg-slate-900 border-white/5 text-slate-400 hover:bg-white/5"
               }`}
             >
-              <div className="font-semibold text-purple-300">OpenRouter Cloud</div>
+              <div className="font-semibold text-purple-300">CoralGenz Global Gateway</div>
               <div className="text-[11px] text-slate-400 truncate mt-0.5">https://openrouter.ai/api/v1</div>
             </button>
           </div>
@@ -352,12 +352,12 @@ export default function AdminPage() {
           </div>
 
           <form onSubmit={handleSaveConfig} className="space-y-6 text-xs">
-            {/* Section A: Model 1 (GPT-OSS) */}
+            {/* Section A: Neural Engine 1 (ExamMind Core) */}
             <div className="p-4 rounded-xl border border-white/10 bg-slate-900/40 space-y-4">
               <div className="flex items-center justify-between border-b border-white/10 pb-2">
                 <div className="flex items-center gap-2">
                   <Cpu className="w-4 h-4 text-cyan-400" />
-                  <span className="font-bold text-slate-200">Model 1: GPT-OSS (General Knowledge & Academics)</span>
+                  <span className="font-bold text-slate-200">Neural Engine 1: ExamMind Core (CoralGenz Global)</span>
                 </div>
                 <span className="text-[10px] text-slate-500">Env: GPT_OSS_BASE_URL, GPT_OSS_MODEL, GPT_OSS_API_KEY</span>
               </div>
@@ -398,12 +398,12 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Section B: Model 2 (Qwen 2.5) */}
+            {/* Section B: Neural Engine 2 (ExamMind Quantum) */}
             <div className="p-4 rounded-xl border border-white/10 bg-slate-900/40 space-y-4">
               <div className="flex items-center justify-between border-b border-white/10 pb-2">
                 <div className="flex items-center gap-2">
                   <Brain className="w-4 h-4 text-purple-400" />
-                  <span className="font-bold text-slate-200">Model 2: Qwen 2.5 (Coding, Mathematics & STEM)</span>
+                  <span className="font-bold text-slate-200">Neural Engine 2: ExamMind Quantum (CoralGenz Global)</span>
                 </div>
                 <span className="text-[10px] text-slate-500">Env: QWEN_BASE_URL, QWEN_MODEL, QWEN_API_KEY</span>
               </div>

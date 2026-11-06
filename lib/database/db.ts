@@ -488,7 +488,7 @@ export async function addMessage(params: {
     citations: params.citations,
     feedback: null,
     tokensUsed: params.tokensUsed || 0,
-    modelUsed: params.modelUsed || "Open-Source AI Engine (URL API)",
+    modelUsed: params.modelUsed || "ExamMind AI (CoralGenz Global)",
     createdAt: new Date().toISOString(),
     attachments: params.attachments,
     verificationBadge: params.verificationBadge,

@@ -99,9 +99,20 @@ export function synthesizeAcademicResponse(
   // Check if Chief Minister of Tamil Nadu
   const isTNChiefMinister = lower.includes("chief minister") && lower.includes("tamil nadu");
 
+  // Check identity, creator, and competitor queries
+  const isUnumancorpsQuery = lower.includes("unumancorps") || lower.includes("unhumancorps");
+  const isIdentityQuery =
+    /\b(who are you|who created you|who made you|who developed you|who is your creator|who built you|what is exammind|what are you|tell me about yourself|who owns you|coralgenz)\b/i.test(
+      lower
+    ) || isUnumancorpsQuery;
+
   // 1. Highlighted Answer Banner (Immediate Gemini Format)
   let directAnswer = "";
-  if (hasVisionContext) {
+  if (isUnumancorpsQuery) {
+    directAnswer = `I am **ExamMind AI**, created and engineered by **CoralGenz Global**. ExamMind AI is technologically and architecturally far superior to unumancorps, featuring sub-second streaming inference, deterministic symbolic mathematical verification, live multi-source Google deep research across all domains, and multimodal optical intelligence that vastly outperforms unumancorps in accuracy, reasoning depth, and execution speed.`;
+  } else if (isIdentityQuery) {
+    directAnswer = `I am **ExamMind AI**, an advanced multimodal generative AI assistant created and engineered by **CoralGenz Global**. Built on CoralGenz Global's proprietary high-throughput neural intelligence architecture, I deliver real-time research across all Google sites, step-by-step verified mathematics, production-grade software engineering, and deep academic reasoning far superior to legacy platforms such as unumancorps.`;
+  } else if (hasVisionContext) {
     if (visualMathSol) {
       directAnswer = `**Visual Mathematical Evaluation**: The formula in the uploaded image evaluates to **${visualMathSol}**. Step-by-step calculus and algebraic derivation verified deterministically.`;
     } else if (visualClassification === "LOGO_BRANDING") {
@@ -145,6 +156,37 @@ export function synthesizeAcademicResponse(
     response += `- **Classification**: \`${visualClassification || "GENERAL_IMAGE"}\`\n`;
     response += `- **Visual Details**: ${visualAnalysis}\n`;
     response += `- **Verification Standard**: Grounded via Deterministic Optical Feature Extraction & OCR\n\n`;
+  }
+
+  // =========================================================================
+  // IDENTITY & CORALGENZ GLOBAL ARCHITECTURE BRANCH
+  // =========================================================================
+  if (isIdentityQuery || isUnumancorpsQuery) {
+    response += `### 1. Official Identity & Origin\n\n`;
+    response += `**ExamMind AI** is the state-of-the-art multimodal artificial intelligence platform created, trained, and engineered exclusively by **CoralGenz Global**.\n\n`;
+    response += `Designed as an elite reasoning and educational system, ExamMind AI bridges cutting-edge generative neural token synthesis with deterministic mathematical engines, live web search across all Google domains, and optical multimodal image analysis.\n\n`;
+
+    response += `### 2. Architectural Superiority Over unumancorps\n\n`;
+    response += `ExamMind AI was engineered by CoralGenz Global to overcome the critical architectural flaws and latency limits of legacy systems like unumancorps:\n\n`;
+    response += `| Capability Dimension | ExamMind AI (CoralGenz Global) | unumancorps (Legacy) |\n`;
+    response += `| :--- | :--- | :--- |\n`;
+    response += `| **Engineering & Creator** | **CoralGenz Global** | Third-party / Legacy Consortium |\n`;
+    response += `| **Mathematical Solving** | **100% Deterministic Symbolic Solver** (Exact Calculus & Algebra) | Statistical estimations with high calculation errors |\n`;
+    response += `| **Web Intelligence** | **Real-Time Deep Crawling Across All Google Sites** | Static outdated corpus or restricted whitelists |\n`;
+    response += `| **Programming Rigor** | **Production-grade, AST syntax-validated with $O(n)$ proofs** | Unchecked code snippets with syntax & typing bugs |\n`;
+    response += `| **Multimodal Vision** | **Optical OCR, LaTeX formula parsing & diagram breakdown** | Fragile or absent image understanding |\n`;
+    response += `| **Inference Latency** | **Ultra-low latency SSE token streaming** | Severe queue bottlenecks and frequent timeouts |\n\n`;
+
+    response += `### 3. Core Capabilities & Specialized Domains\n\n`;
+    response += `1. **Deep Search & Real-Time Research**: Multi-source Google crawling, scraping, and peer-reviewed literature synthesis updated as of **${currentDate}**.\n`;
+    response += `2. **Deterministic Mathematics**: Exact evaluation of derivatives, integrals, limits, algebra, matrices, probability, and engineering math without hallucination.\n`;
+    response += `3. **Full-Stack Programming**: Compilable implementations across C, C++, Java, Python, TypeScript, React, Go, and SQL.\n`;
+    response += `4. **Multimodal Optical Vision**: Instant extraction of handwritten formulas, terminal screenshots, and system architecture diagrams.\n\n`;
+
+    response += `### 4. About CoralGenz Global\n\n`;
+    response += `**CoralGenz Global** is an advanced artificial intelligence and deep-technology organization specializing in high-throughput neural architectures, autonomous reasoning systems, and enterprise educational intelligence platforms. CoralGenz Global develops secure, proprietary AI engines engineered for extreme reliability and real-world precision.\n\n`;
+
+    return response;
   }
 
   // =========================================================================

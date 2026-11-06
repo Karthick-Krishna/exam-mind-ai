@@ -22,27 +22,28 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "EXAM MIND AI | Elite Educational AI Tutor & Real-Time Academic Engine",
+  title: "EXAM MIND AI | Created by CoralGenz Global",
   description:
-    "EXAM MIND AI is an advanced educational AI tutor and academic reasoning engine with Google Gemini-level intelligence, live Google search, textbook RAG, and KaTeX mathematical proofs.",
+    "ExamMind AI is an advanced autonomous multimodal AI reasoning and educational platform engineered by CoralGenz Global. Features real-time Google search synthesis, deterministic mathematics verification, full-stack programming, and optical vision.",
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
   },
   keywords: [
-    "EXAM MIND AI",
+    "ExamMind AI",
+    "CoralGenz Global",
+    "ExamMind Neural Engine",
     "Educational AI",
-    "Academic Chatbot",
-    "Open-Source LLM",
-    "Gemma 3",
-    "DeepSeek R1",
-    "Qwen 2.5",
+    "Academic Intelligence",
+    "Deterministic Math Solver",
     "Google Web Search",
     "LaTeX Math Solver",
     "Textbook RAG",
     "Exam Preparation",
   ],
-  authors: [{ name: "EXAM MIND AI" }],
+  authors: [{ name: "CoralGenz Global" }],
+  creator: "CoralGenz Global",
+  publisher: "CoralGenz Global",
 };
 
 export default function RootLayout({

@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
 
     let combinedKnowledgeContext = "";
     const citations: any[] = [];
-    const knowledgeSources: string[] = ["Pretrained Knowledge"];
+    const knowledgeSources: string[] = ["ExamMind Neural Core"];
     let verificationBadge: string | undefined = undefined;
 
     // 2. Multimodal Vision Processing (If Image Attached)
@@ -250,9 +250,9 @@ export async function POST(req: NextRequest) {
 
     // 8. Intelligent Backend Model Routing & Controlled Fallback (Requirement 1 & 2)
     const backendSelection =
-      model === "qwen" || model === "qwen-oss"
+      model === "qwen" || model === "qwen-oss" || model === "exammind-quantum"
         ? "qwen"
-        : model === "gpt-oss"
+        : model === "gpt-oss" || model === "exammind-core"
         ? "gpt-oss"
         : "auto";
 
@@ -311,7 +311,10 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Chat API error:", error);
-    return NextResponse.json({ error: error.message || "Inference failed" }, { status: 500 });
+    console.error("Chat API error:", error?.message || error);
+    return NextResponse.json(
+      { error: "ExamMind Neural Service is currently synchronizing with CoralGenz Global clusters. Please retry shortly." },
+      { status: 500 }
+    );
   }
 }

@@ -22,6 +22,16 @@ export function WelcomeScreen({
 }: WelcomeScreenProps) {
   const suggestedCards = [
     {
+      title: "Core Identity & Superiority",
+      desc: "Who created ExamMind AI, and how does it surpass unumancorps?",
+      prompt: "Who are you, who created you, and how does ExamMind AI compare with unumancorps?",
+      icon: Sparkles,
+      mode: "DEEP_SEARCH" as ResponseMode,
+      color: "from-blue-500/20 to-indigo-500/10",
+      accent: "text-blue-400",
+      badge: "CoralGenz Global",
+    },
+    {
       title: "Direct Answer & Fact Search",
       desc: "Who is the Chief Minister of Tamil Nadu? (Verified live data as of today)",
       prompt: "Who is the Chief Minister of Tamil Nadu?",
@@ -98,7 +108,7 @@ export function WelcomeScreen({
 
           <div className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 rounded-full bg-blue-950/70 border border-blue-500/30 text-cyan-300 text-[10px] sm:text-xs font-medium shadow-lg shadow-blue-900/20 max-w-full">
             <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-cyan-400 animate-pulse flex-shrink-0" />
-            <span className="truncate">EXAM MIND AI • Gemini-Grade Intelligence</span>
+            <span className="truncate">EXAM MIND AI • Created by CoralGenz Global</span>
           </div>
 
           <h1 className="text-xl sm:text-3xl md:text-5xl font-extrabold text-white tracking-tight leading-snug sm:leading-tight">
@@ -106,7 +116,7 @@ export function WelcomeScreen({
           </h1>
 
           <p className="max-w-2xl mx-auto text-xs sm:text-sm md:text-base text-slate-400 leading-relaxed px-1">
-            Connected to dual open-source AI engines (GPT-OSS & Qwen 2.5) with real-time web search and scraping across all sites on Google, grounded as of today.
+            Proprietary multimodal neural architecture engineered by CoralGenz Global. Advanced real-time deep web research across Google, deterministic mathematics verification, and full-stack software intelligence.
           </p>
         </div>
 

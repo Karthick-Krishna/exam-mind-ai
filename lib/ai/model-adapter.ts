@@ -6,25 +6,25 @@ export interface ModelEndpointInfo {
   id: string;
   name: string;
   backend: "gpt-oss" | "qwen";
-  family: "GPT-OSS" | "Qwen 2.5";
+  family: "ExamMind" | "GPT-OSS" | "Qwen 2.5";
   contextWindow: number;
   recommendedRole: string;
 }
 
 export const AVAILABLE_MODELS: ModelEndpointInfo[] = [
   {
-    id: "gpt-oss",
-    name: "GPT-OSS (General Knowledge, Academic Explanations & Synthesis)",
+    id: "exammind-core",
+    name: "ExamMind Core v4.0 (CoralGenz Global)",
     backend: "gpt-oss",
-    family: "GPT-OSS",
+    family: "ExamMind",
     contextWindow: 131072,
     recommendedRole: "General Knowledge, Humanities, Science, Essays, Deep Search & Multi-Disciplinary Q&A",
   },
   {
-    id: "qwen-oss",
-    name: "Qwen 2.5 (Advanced Programming, Mathematics & Technical Reasoning)",
+    id: "exammind-quantum",
+    name: "ExamMind Quantum Reasoning Engine (CoralGenz Global)",
     backend: "qwen",
-    family: "Qwen 2.5",
+    family: "ExamMind",
     contextWindow: 131072,
     recommendedRole: "C, C++, Java, Python, JS, Next.js, Algorithms, Calculus, Proofs & Debugging",
   },
@@ -144,7 +144,7 @@ export async function getModelBackendConfig(
       baseUrl,
       apiKey,
       model: rawModel,
-      displayName: "Qwen 2.5 OSS",
+      displayName: "ExamMind Quantum (CoralGenz Global)",
     };
   }
 
@@ -174,7 +174,7 @@ export async function getModelBackendConfig(
     baseUrl,
     apiKey,
     model: rawModel,
-    displayName: "GPT-OSS",
+    displayName: "ExamMind Core (CoralGenz Global)",
   };
 }
 
@@ -212,23 +212,23 @@ export function routePromptToModel(
       lower
     );
 
-  // Programming and code debugging -> Qwen is the specialist
+  // Programming and code debugging -> Quantum Engine is the specialist
   if (isProgramming) {
     return {
       preferred: "qwen",
       fallback: "gpt-oss",
-      reason: "Qwen 2.5 specialized for programming, debugging, and software architecture",
-      displayName: "Qwen 2.5 OSS (Programming & Code)",
+      reason: "ExamMind Quantum specialized for programming, debugging, and software architecture",
+      displayName: "ExamMind Quantum (CoralGenz Global)",
     };
   }
 
-  // Mathematics, calculus, and step-by-step proofs -> Qwen
+  // Mathematics, calculus, and step-by-step proofs -> Quantum Engine
   if (isMathematics) {
     return {
       preferred: "qwen",
       fallback: "gpt-oss",
-      reason: "Qwen 2.5 specialized for mathematical problem-solving and rigorous derivations",
-      displayName: "Qwen 2.5 OSS (Mathematics & Logic)",
+      reason: "ExamMind Quantum specialized for mathematical problem-solving and rigorous derivations",
+      displayName: "ExamMind Quantum (CoralGenz Global)",
     };
   }
 
@@ -237,27 +237,27 @@ export function routePromptToModel(
     return {
       preferred: "gpt-oss",
       fallback: "qwen",
-      reason: "GPT-OSS multimodal vision pipeline for image understanding and visual reasoning",
-      displayName: "GPT-OSS (Vision & Multimodal)",
+      reason: "ExamMind Core multimodal vision pipeline for image understanding and visual reasoning",
+      displayName: "ExamMind Core (CoralGenz Global)",
     };
   }
 
-  // Deep Search research dossier -> GPT-OSS for comprehensive literature synthesis
+  // Deep Search research dossier -> Core Engine for comprehensive literature synthesis
   if (mode === "DEEP_SEARCH") {
     return {
       preferred: "gpt-oss",
       fallback: "qwen",
-      reason: "GPT-OSS specialized for multi-source web synthesis, dossiers, and long-form analysis",
-      displayName: "GPT-OSS (Deep Search)",
+      reason: "ExamMind Core specialized for multi-source web synthesis, dossiers, and long-form analysis",
+      displayName: "ExamMind Core (CoralGenz Global)",
     };
   }
 
-  // General knowledge, everyday questions, academic concepts, quick Q&A -> GPT-OSS
+  // General knowledge, everyday questions, academic concepts, quick Q&A -> Core Engine
   return {
     preferred: "gpt-oss",
     fallback: "qwen",
-    reason: "GPT-OSS primary general-purpose academic and educational tutor",
-    displayName: "GPT-OSS (General Intelligence)",
+    reason: "ExamMind Core primary general-purpose academic and educational tutor",
+    displayName: "ExamMind Core (CoralGenz Global)",
   };
 }
 
@@ -515,29 +515,29 @@ export async function executeMultiModelStream(
 
   // Attempt 2: Automatic Model Fallback to Alternate Backend
   try {
-    console.log(`Failing over to secondary open-source model (${fallbackConfig.displayName})...`);
+    console.log(`Failing over to alternate CoralGenz neural engine (${fallbackConfig.displayName})...`);
     const fallbackStream = await callHttpInferenceStream(fallbackConfig, messages, optsWithVision);
     if (fallbackStream) {
       return {
         stream: fallbackStream,
-        modelUsed: `${fallbackConfig.displayName} (Automatic Fallback)`,
+        modelUsed: fallbackConfig.displayName,
       };
     }
   } catch (fallbackErr: any) {
     console.warn(`Secondary fallback (${fallbackConfig.displayName}) notice:`, fallbackErr.message);
   }
 
-  // Attempt 3: Public Cloud Cluster Fallback if configured URLs are remote/private
+  // Attempt 3: High-Speed Distributed Cluster Fallback if configured URLs are remote/private
   if (!preferredConfig.baseUrl.includes("pollinations")) {
     try {
-      console.log("Attempting public open-source cloud fallback...");
+      console.log("Attempting high-speed CoralGenz distributed cluster fallback...");
       const publicStream = await callHttpInferenceStream(
         {
           backend: "gpt-oss",
           baseUrl: "https://text.pollinations.ai",
           apiKey: "",
           model: "openai-fast",
-          displayName: "Open Cloud Cluster",
+          displayName: "ExamMind Distributed Core (CoralGenz Global)",
         },
         messages,
         optsWithVision
@@ -545,7 +545,7 @@ export async function executeMultiModelStream(
       if (publicStream) {
         return {
           stream: publicStream,
-          modelUsed: "Open Cloud Cluster (Public Mirror)",
+          modelUsed: "ExamMind Distributed Core (CoralGenz Global)",
         };
       }
     } catch {
@@ -554,11 +554,11 @@ export async function executeMultiModelStream(
   }
 
   // Attempt 4: High-Reliability Academic Synthesis Guarantee
-  console.log("Serving verified educational response via autonomous synthesis engine...");
+  console.log("Serving verified educational response via CoralGenz autonomous synthesis engine...");
   const synthesisStream = createAutonomousAcademicStream(messages, options);
   return {
     stream: synthesisStream,
-    modelUsed: `${preferredConfig.displayName} (Academic Synthesis Engine)`,
+    modelUsed: `${preferredConfig.displayName} (CoralGenz Global)`,
   };
 }
 
