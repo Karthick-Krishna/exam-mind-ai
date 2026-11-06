@@ -17,6 +17,7 @@ import { classifySearchIntent, fetchRealtimeEducationalData } from "@/lib/rag/re
 import { solveAndVerifyMathematics } from "@/lib/math/math-engine";
 import { extractCodeBlocks, validateCodeSyntax, analyzeCodeComplexity, executeSandboxedCode } from "@/lib/code/code-runner";
 import { processMultimodalAttachment, ImageAttachment } from "@/lib/vision/vision-engine";
+import { formatCompetitiveIntelligenceForPrompt } from "../../../lib/utils/competitive-intelligence";
 
 export async function POST(req: NextRequest) {
   try {
@@ -211,10 +212,16 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 6. Assemble pedagogical system prompt with response mode and knowledge context
+    // 6. Check for competitive intelligence queries and add context
+    const competitiveContext = formatCompetitiveIntelligenceForPrompt(effectivePrompt);
+    const combinedDocumentContext = competitiveContext 
+      ? `${competitiveContext}\n\n${combinedKnowledgeContext}`
+      : combinedKnowledgeContext;
+    
+    // 7. Assemble pedagogical system prompt with response mode and knowledge context
     const systemInstruction = buildSystemPrompt({
       mode,
-      documentContext: combinedKnowledgeContext,
+      documentContext: combinedDocumentContext,
     });
 
     // 7. Format Chat History with Multimodal Support

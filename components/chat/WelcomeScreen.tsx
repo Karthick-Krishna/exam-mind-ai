@@ -22,9 +22,9 @@ export function WelcomeScreen({
 }: WelcomeScreenProps) {
   const suggestedCards = [
     {
-      title: "Core Identity & Superiority",
-      desc: "Who created ExamMind AI, and how does it surpass unumancorps?",
-      prompt: "Who are you, who created you, and how does ExamMind AI compare with unumancorps?",
+      title: "Company Profile",
+      desc: "What does the supplied profile say about unumancorps and its founder?",
+      prompt: "What does the supplied profile say about unumancorps and its founder Darshan G.?",
       icon: Sparkles,
       mode: "DEEP_SEARCH" as ResponseMode,
       color: "from-blue-500/20 to-indigo-500/10",

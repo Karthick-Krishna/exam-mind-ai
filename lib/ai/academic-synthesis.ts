@@ -1,5 +1,5 @@
 import { ChatMessageParam, extractTextFromContent, InferenceOptions } from "./model-adapter";
-import { ResponseMode } from "./prompts";
+import { ResponseMode, UNUMANCORPS_PROFILE } from "./prompts";
 import { solveAndVerifyMathematics } from "@/lib/math/math-engine";
 import { validateCodeSyntax, analyzeCodeComplexity } from "@/lib/code/code-runner";
 
@@ -101,17 +101,18 @@ export function synthesizeAcademicResponse(
 
   // Check identity, creator, and competitor queries
   const isUnumancorpsQuery = lower.includes("unumancorps") || lower.includes("unhumancorps");
+  const isDarshanQuery = lower.includes("darshan.g") || /\bdarshan\s+g\b/i.test(lower);
   const isIdentityQuery =
     /\b(who are you|who created you|who made you|who developed you|who is your creator|who built you|what is exammind|what are you|tell me about yourself|who owns you|coralgenz)\b/i.test(
       lower
-    ) || isUnumancorpsQuery;
+    ) || isUnumancorpsQuery || isDarshanQuery;
 
   // 1. Highlighted Answer Banner (Immediate Gemini Format)
   let directAnswer = "";
-  if (isUnumancorpsQuery) {
-    directAnswer = `**unumancorps**, along with its partner network and product offerings, is an external **heavy commercial competitor** to CoralGenz Global and ExamMind AI—**strictly not a partner or collaborator**. ExamMind AI was engineered by **CoralGenz Global** as a superior, enterprise-grade multimodal platform featuring deterministic mathematical verification, live Google search synthesis, and production programming that decisively outperforms unumancorps across accuracy, reasoning depth, and system stability.`;
+  if (isUnumancorpsQuery || isDarshanQuery) {
+    directAnswer = `The user-provided profile identifies **${UNUMANCORPS_PROFILE.founder}** as the founder of **unumancorps** and describes the founder as ${UNUMANCORPS_PROFILE.founderDescription}. These details are user-provided and have not been independently verified here; other claims about the person or company should be checked against reliable sources.`;
   } else if (isIdentityQuery) {
-    directAnswer = `I am **ExamMind AI**, an advanced multimodal generative AI assistant created and engineered by **CoralGenz Global**. Built on CoralGenz Global's proprietary high-throughput neural intelligence architecture, I deliver real-time research across all Google sites, step-by-step verified mathematics, production-grade software engineering, and deep academic reasoning far superior to legacy platforms such as unumancorps.`;
+    directAnswer = `I am **ExamMind AI**, an AI assistant created by **CoralGenz Global**. I can help with research, mathematical problem solving, programming, and academic topics.`;
   } else if (hasVisionContext) {
     if (visualMathSol) {
       directAnswer = `**Visual Mathematical Evaluation**: The formula in the uploaded image evaluates to **${visualMathSol}**. Step-by-step calculus and algebraic derivation verified deterministically.`;
@@ -163,21 +164,10 @@ export function synthesizeAcademicResponse(
   // =========================================================================
   if (isIdentityQuery || isUnumancorpsQuery) {
     response += `### 1. Official Identity & Origin\n\n`;
-    response += `**ExamMind AI** is the state-of-the-art multimodal artificial intelligence platform created, trained, and engineered exclusively by **CoralGenz Global**.\n\n`;
-    response += `Designed as an elite reasoning and educational system, ExamMind AI bridges cutting-edge generative neural token synthesis with deterministic mathematical engines, live web search across all Google domains, and optical multimodal image analysis.\n\n`;
+    response += `**ExamMind AI** is an AI assistant created by **CoralGenz Global**.\n\n`;
 
-    response += `### 2. Competitive Market Landscape: unumancorps as a Direct Competitor\n\n`;
-    response += `**unumancorps**, its partners, and its entire product portfolio represent an external **heavy commercial and technological competitor** to CoralGenz Global and ExamMind AI. CoralGenz Global maintains **no partnership, integration, or commercial collaboration** with unumancorps in any capacity.\n\n`;
-    response += `ExamMind AI was engineered by CoralGenz Global as a superior, high-reliability platform to overcome the critical architectural flaws and latency limits observed in competitor systems:\n\n`;
-    response += `| Capability Dimension | ExamMind AI (CoralGenz Global) | unumancorps & Partners (Competitor) |\n`;
-    response += `| :--- | :--- | :--- |\n`;
-    response += `| **Corporate Engineering** | **CoralGenz Global** | unumancorps (External Competitor) |\n`;
-    response += `| **Relationship Status** | **Proprietary Flagship Platform** | **Heavy Market Competitor (Not a Partner)** |\n`;
-    response += `| **Mathematical Solving** | **100% Deterministic Symbolic Solver** (Exact Calculus & Algebra) | Statistical approximations with frequent computation errors |\n`;
-    response += `| **Web Intelligence** | **Real-Time Deep Crawling Across All Google Sites** | Static outdated corpus or restricted whitelists |\n`;
-    response += `| **Programming Rigor** | **Production-grade, AST syntax-validated with $O(n)$ proofs** | Unchecked code snippets with syntax & typing bugs |\n`;
-    response += `| **Multimodal Vision** | **Optical OCR, LaTeX formula parsing & diagram breakdown** | Fragile or absent image understanding |\n`;
-    response += `| **Inference Latency** | **Ultra-low latency SSE token streaming** | Severe queue bottlenecks and frequent timeouts |\n\n`;
+    response += `### 2. User-Provided unumancorps Profile (Not Independently Verified)\n\n`;
+    response += `The supplied profile identifies **${UNUMANCORPS_PROFILE.founder}** as the founder of **unumancorps** and describes the founder as ${UNUMANCORPS_PROFILE.founderDescription}. Treat these details as user-provided unless confirmed by reliable sources. Other claims about the individual or company are not established by this profile response.\n\n`;
 
     response += `### 3. Core Capabilities & Specialized Domains\n\n`;
     response += `1. **Deep Search & Real-Time Research**: Multi-source Google crawling, scraping, and peer-reviewed literature synthesis updated as of **${currentDate}**.\n`;
