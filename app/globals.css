@@ -2,28 +2,28 @@
 @import "katex/dist/katex.min.css";
 
 :root {
-  --background: #212121;
-  --foreground: #ececec;
-  --sidebar-bg: #171717;
-  --surface: #2f2f2f;
-  --surface-hover: #383838;
-  --surface-border: rgba(255, 255, 255, 0.1);
-  --surface-border-hover: rgba(255, 255, 255, 0.2);
+  --background: #ffffff;
+  --foreground: #0d0d0d;
+  --sidebar-bg: #f9f9f9;
+  --surface: #f4f4f4;
+  --surface-hover: #eaeaea;
+  --surface-border: rgba(0, 0, 0, 0.08);
+  --surface-border-hover: rgba(0, 0, 0, 0.16);
   --chatgpt-green: #10a37f;
-  --chatgpt-green-hover: #1a7f64;
-  --glow-color: rgba(16, 163, 127, 0.15);
+  --chatgpt-green-hover: #0e8c6d;
+  --glow-color: rgba(16, 163, 127, 0.1);
 }
 
 body {
-  background-color: #212121;
-  color: #ececec;
+  background-color: #ffffff;
+  color: #0d0d0d;
   font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
   selection-background-color: #10a37f;
   selection-color: #ffffff;
 }
 
-/* Custom ChatGPT-Style Scrollbars */
+/* Custom ChatGPT-Style Scrollbars (Light Theme) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -32,62 +32,75 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.28);
 }
 
-/* ChatGPT Signature Glassmorphic Surfaces */
+/* ChatGPT Signature Light Glassmorphic Surfaces */
 .glass-chatgpt {
-  background: rgba(47, 47, 47, 0.75);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 30px 0 rgba(0, 0, 0, 0.06);
 }
 
 .glass-chatgpt-subtle {
-  background: rgba(33, 33, 33, 0.8);
+  background: rgba(249, 249, 249, 0.85);
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .glass-input-chatgpt {
-  background: rgba(47, 47, 47, 0.85);
+  background: #ffffff;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 12px 36px -10px rgba(0, 0, 0, 0.08);
 }
 
 .glass-bubble-user {
-  background: rgba(56, 56, 56, 0.9);
+  background: #f4f4f4;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .chatgpt-ambient-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(16, 163, 127, 0.1), transparent 70%);
+  background: radial-gradient(circle at 50% 0%, rgba(16, 163, 127, 0.07), transparent 70%);
 }
 
 .radiant-cyan-glow {
-  background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.15), transparent 60%);
+  background: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.08), transparent 60%);
 }
 
-/* Subtle Grid Background */
+/* Subtle Grid Background (Light Mode) */
 .bg-grid-pattern {
   background-size: 36px 36px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
 }
 
 /* Shimmer animation */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
 @keyframes pulseGlow {
   0%, 100% {
     opacity: 0.4;
@@ -123,7 +136,7 @@ code {
   max-width: 100%;
 }
 .katex {
-  color: #10a37f;
+  color: #0d765d;
 }
 
 /* Mobile UI optimizations */

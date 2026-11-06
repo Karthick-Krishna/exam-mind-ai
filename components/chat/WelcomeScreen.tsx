@@ -96,9 +96,9 @@ export function WelcomeScreen({
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-6 md:px-8 py-6 sm:py-12 flex flex-col items-center justify-center min-h-[60vh] sm:min-h-[75vh]">
       <div className="max-w-3xl w-full space-y-6 sm:space-y-8 text-center">
-        {/* ChatGPT Style Brand Emblem & Headline */}
+        {/* ChatGPT Style Brand Emblem & Headline (Light Mode) */}
         <div className="space-y-3 sm:space-y-4 flex flex-col items-center">
-          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-2xl shadow-black/60 border border-white/10 p-0.5 bg-gradient-to-br from-zinc-800 to-zinc-900 group hover:border-emerald-500/40 transition-all">
+          <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-md border border-zinc-200 p-0.5 bg-white group hover:border-emerald-500/50 transition-all">
             <img
               src="/logo.png"
               alt="EXAM MIND AI Logo"
@@ -106,17 +106,17 @@ export function WelcomeScreen({
             />
           </div>
 
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-white tracking-tight">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-semibold text-zinc-900 tracking-tight">
             What can I help with today?
           </h1>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2f2f2f]/80 border border-white/10 text-zinc-300 text-xs shadow-md">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="font-medium">ExamMind AI • Engineered by CoralGenz Global</span>
           </div>
         </div>
 
-        {/* Suggested Queries Grid - Clean ChatGPT Glassmorphic Cards */}
+        {/* Suggested Queries Grid - Clean ChatGPT Light Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3.5 pt-2 text-left">
           {suggestedCards.map((card, idx) => {
             const Icon = card.icon;
@@ -124,28 +124,28 @@ export function WelcomeScreen({
               <div
                 key={idx}
                 onClick={() => onSelectPrompt(card.prompt, card.mode)}
-                className="group p-3.5 sm:p-4 rounded-2xl border border-white/[0.08] bg-[#2f2f2f]/60 hover:bg-[#2f2f2f] hover:border-white/20 backdrop-blur-xl cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5 shadow-lg shadow-black/20 active:scale-[0.98]"
+                className="group p-3.5 sm:p-4 rounded-2xl border border-zinc-200 bg-white hover:bg-zinc-50/80 hover:border-zinc-300 backdrop-blur-xl cursor-pointer transition-all duration-200 flex flex-col justify-between space-y-2.5 shadow-2xs hover:shadow-sm active:scale-[0.98]"
               >
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <div
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center flex-shrink-0 text-white group-hover:text-emerald-400 group-hover:bg-emerald-500/10 transition-colors"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center flex-shrink-0 text-zinc-700 group-hover:text-emerald-700 group-hover:bg-emerald-50 group-hover:border-emerald-200 transition-colors"
                     >
                       <Icon className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-white/5 text-zinc-400 border border-white/5">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-600 border border-zinc-200 font-medium">
                       {card.badge}
                     </span>
                   </div>
-                  <h3 className="font-medium text-xs sm:text-sm text-zinc-200 group-hover:text-white transition-colors">
+                  <h3 className="font-semibold text-xs sm:text-sm text-zinc-900 group-hover:text-emerald-800 transition-colors">
                     {card.title}
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                  <p className="text-[11px] sm:text-xs text-zinc-500 line-clamp-2 leading-relaxed">
                     {card.desc}
                   </p>
                 </div>
 
-                <div className="flex items-center justify-between pt-1.5 border-t border-white/5 text-[10px] sm:text-[11px] font-medium text-zinc-500 group-hover:text-emerald-400 transition-colors">
+                <div className="flex items-center justify-between pt-2 border-t border-zinc-100 text-[10px] sm:text-[11px] font-medium text-zinc-400 group-hover:text-emerald-700 transition-colors">
                   <span>Ask ExamMind</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>

@@ -13,45 +13,45 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
-    <div className="prose prose-invert max-w-none text-zinc-200 leading-relaxed text-[14px] sm:text-[15px] space-y-3">
+    <div className="prose prose-neutral max-w-none text-zinc-800 leading-relaxed text-[14px] sm:text-[15px] space-y-3">
       <ReactMarkdown
         remarkPlugins={[remarkMath, remarkGfm]}
         rehypePlugins={[rehypeKatex]}
         components={{
           h1: ({ children }) => (
-            <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight mt-5 mb-2.5 pb-2 border-b border-white/10 flex items-center gap-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-zinc-900 tracking-tight mt-5 mb-2.5 pb-2 border-b border-zinc-200 flex items-center gap-2">
               <span className="w-1.5 h-5 sm:h-6 bg-[#10a37f] rounded-full inline-block flex-shrink-0"></span>
               <span>{children}</span>
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-base sm:text-xl font-semibold text-white tracking-tight mt-4 mb-2 flex items-center gap-2">
-              <span className="w-1 h-3.5 sm:h-4 bg-[#10a37f]/80 rounded-full inline-block flex-shrink-0"></span>
+            <h2 className="text-base sm:text-xl font-semibold text-zinc-900 tracking-tight mt-4 mb-2 flex items-center gap-2">
+              <span className="w-1 h-3.5 sm:h-4 bg-[#10a37f] rounded-full inline-block flex-shrink-0"></span>
               <span>{children}</span>
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-sm sm:text-base font-semibold text-zinc-100 mt-3.5 mb-1.5">{children}</h3>
+            <h3 className="text-sm sm:text-base font-semibold text-zinc-900 mt-3.5 mb-1.5">{children}</h3>
           ),
-          p: ({ children }) => <p className="mb-2.5 sm:mb-3 leading-6 sm:leading-7 text-zinc-200 break-words">{children}</p>,
-          ul: ({ children }) => <ul className="list-disc pl-4 sm:pl-5 space-y-1 mb-2.5 sm:mb-3 text-zinc-300">{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal pl-4 sm:pl-5 space-y-1 mb-2.5 sm:mb-3 text-zinc-300">{children}</ol>,
+          p: ({ children }) => <p className="mb-2.5 sm:mb-3 leading-6 sm:leading-7 text-zinc-800 break-words">{children}</p>,
+          ul: ({ children }) => <ul className="list-disc pl-4 sm:pl-5 space-y-1 mb-2.5 sm:mb-3 text-zinc-700">{children}</ul>,
+          ol: ({ children }) => <ol className="list-decimal pl-4 sm:pl-5 space-y-1 mb-2.5 sm:mb-3 text-zinc-700">{children}</ol>,
           li: ({ children }) => <li className="leading-5 sm:leading-6">{children}</li>,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-2 border-[#10a37f] bg-white/[0.03] px-3.5 sm:px-4 py-2 rounded-r-lg my-3 text-zinc-300 italic text-xs sm:text-sm">
+            <blockquote className="border-l-3 border-[#10a37f] bg-emerald-50/50 px-3.5 sm:px-4 py-2 rounded-r-lg my-3 text-zinc-700 italic text-xs sm:text-sm">
               {children}
             </blockquote>
           ),
           table: ({ children }) => (
-            <div className="overflow-x-auto my-3 sm:my-4 rounded-xl border border-white/10 bg-[#171717] -webkit-overflow-scrolling-touch">
-              <table className="min-w-full divide-y divide-white/10 text-xs sm:text-sm text-left">{children}</table>
+            <div className="overflow-x-auto my-3 sm:my-4 rounded-xl border border-zinc-200 bg-white -webkit-overflow-scrolling-touch shadow-2xs">
+              <table className="min-w-full divide-y divide-zinc-200 text-xs sm:text-sm text-left">{children}</table>
             </div>
           ),
-          thead: ({ children }) => <thead className="bg-[#2f2f2f] text-white font-medium">{children}</thead>,
-          tbody: ({ children }) => <tbody className="divide-y divide-white/5">{children}</tbody>,
-          tr: ({ children }) => <tr className="hover:bg-white/[0.03] transition-colors">{children}</tr>,
-          th: ({ children }) => <th className="px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-zinc-200">{children}</th>,
-          td: ({ children }) => <td className="px-3 sm:px-4 py-2 sm:py-2.5 text-zinc-300">{children}</td>,
+          thead: ({ children }) => <thead className="bg-zinc-100 text-zinc-900 font-semibold">{children}</thead>,
+          tbody: ({ children }) => <tbody className="divide-y divide-zinc-100">{children}</tbody>,
+          tr: ({ children }) => <tr className="hover:bg-zinc-50/80 transition-colors">{children}</tr>,
+          th: ({ children }) => <th className="px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-zinc-900">{children}</th>,
+          td: ({ children }) => <td className="px-3 sm:px-4 py-2 sm:py-2.5 text-zinc-800">{children}</td>,
           code({ className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || "");
             const codeString = String(children).replace(/\n$/, "");
@@ -60,7 +60,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             if (isInline) {
               return (
                 <code
-                  className="bg-[#2f2f2f] text-[#ececec] px-1.5 py-0.5 rounded text-[12px] sm:text-[13px] font-mono border border-white/10 break-all"
+                  className="bg-zinc-100 text-zinc-900 px-1.5 py-0.5 rounded text-[12px] sm:text-[13px] font-mono border border-zinc-200 break-all"
                   {...props}
                 >
                   {children}

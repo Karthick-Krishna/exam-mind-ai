@@ -57,44 +57,44 @@ export function ChatSidebar({
   };
 
   const sidebarContent = (
-    <div className="w-full h-full flex flex-col justify-between bg-[#171717] text-zinc-200">
+    <div className="w-full h-full flex flex-col justify-between bg-[#f9f9f9] text-zinc-800">
       {/* Top Header & Actions */}
       <div className="p-3 space-y-2.5">
         {/* Mobile top bar with close button */}
-        <div className="flex md:hidden items-center justify-between pb-1.5 border-b border-white/[0.08]">
-          <span className="font-semibold text-xs text-white">Chats & Discussions</span>
+        <div className="flex md:hidden items-center justify-between pb-1.5 border-b border-zinc-200">
+          <span className="font-semibold text-xs text-zinc-900">Chats &amp; Discussions</span>
           <button
             onClick={onCloseMobile}
-            className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/60 transition-colors"
             aria-label="Close sidebar"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* New Chat Button (ChatGPT Style) */}
+        {/* New Chat Button (ChatGPT Light Style) */}
         <button
           onClick={handleCreateNew}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#212121] hover:bg-[#2f2f2f] text-white border border-white/10 text-xs sm:text-[13px] font-medium shadow-sm transition-all group"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white hover:bg-zinc-100 text-zinc-900 border border-zinc-200 text-xs sm:text-[13px] font-medium shadow-2xs transition-all group"
         >
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-md bg-[#10a37f]/20 text-[#10a37f] flex items-center justify-center group-hover:scale-105 transition-transform">
+            <div className="w-5 h-5 rounded-md bg-emerald-50 text-[#10a37f] border border-emerald-200 flex items-center justify-center group-hover:scale-105 transition-transform">
               <MessageSquarePlus className="w-3.5 h-3.5" />
             </div>
             <span>New chat</span>
           </div>
-          <span className="text-[10px] font-mono text-zinc-500 border border-white/10 rounded px-1.5 py-0.5">⌘K</span>
+          <span className="text-[10px] font-mono text-zinc-400 border border-zinc-200 rounded px-1.5 py-0.5">⌘K</span>
         </button>
 
         {/* Search Input */}
         <div className="relative">
-          <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-2.5" />
+          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
           <input
             type="text"
             placeholder="Search chats..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-[#212121] border border-white/10 text-xs text-[#ececec] placeholder-zinc-500 focus:outline-none focus:border-[#10a37f]/50 transition-colors"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-white border border-zinc-200 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-emerald-500 transition-colors"
           />
         </div>
       </div>
@@ -160,16 +160,16 @@ export function ChatSidebar({
       </div>
 
       {/* Bottom Info Section */}
-      <div className="p-3 pb-safe border-t border-white/[0.08] bg-[#171717] text-xs space-y-1.5">
-        <div className="flex items-center justify-between text-zinc-400 px-1">
+      <div className="p-3 pb-safe border-t border-zinc-200 bg-[#f9f9f9] text-xs space-y-1.5">
+        <div className="flex items-center justify-between text-zinc-600 px-1">
           <span className="text-[11px]">Intelligence Mode</span>
-          <span className="text-[10px] font-mono text-[#10a37f] bg-[#10a37f]/10 px-2 py-0.5 rounded border border-[#10a37f]/20 font-medium">
+          <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-medium">
             {selectedMode.replace(/_/g, " ")}
           </span>
         </div>
         <div className="flex items-center justify-between text-zinc-500 px-1 text-[10px]">
           <span>Engine Architecture</span>
-          <span className="font-mono text-zinc-300 font-medium">CoralGenz Global</span>
+          <span className="font-mono text-zinc-800 font-medium">CoralGenz Global</span>
         </div>
       </div>
     </div>
@@ -178,7 +178,7 @@ export function ChatSidebar({
   return (
     <>
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden md:flex w-64 flex-shrink-0 h-full border-r border-white/[0.08] bg-[#171717]">
+      <aside className="hidden md:flex w-64 flex-shrink-0 h-full border-r border-zinc-200 bg-[#f9f9f9]">
         {sidebarContent}
       </aside>
 
@@ -187,13 +187,13 @@ export function ChatSidebar({
         <div className="fixed inset-0 z-50 md:hidden flex">
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
             aria-hidden="true"
           />
 
           {/* Drawer Body */}
-          <aside className="relative w-4/5 max-w-xs h-[100dvh] bg-[#171717] border-r border-white/10 z-10 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left duration-200 pb-safe">
+          <aside className="relative w-4/5 max-w-xs h-[100dvh] bg-[#f9f9f9] border-r border-zinc-200 z-10 flex flex-col justify-between shadow-2xl animate-in slide-in-from-left duration-200 pb-safe">
             {sidebarContent}
           </aside>
         </div>
@@ -220,26 +220,26 @@ function ConversationItem({
       onClick={onSelect}
       className={`group relative flex items-center justify-between px-2.5 py-2 rounded-lg cursor-pointer text-xs sm:text-[13px] transition-colors ${
         isActive
-          ? "bg-[#212121] text-white font-medium border border-white/[0.08]"
-          : "text-zinc-400 hover:text-[#ececec] hover:bg-[#212121]/60"
+          ? "bg-zinc-200/80 text-zinc-950 font-semibold border border-zinc-300/60"
+          : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/40"
       }`}
     >
       <div className="truncate pr-2 flex items-center gap-2">
-        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-[#10a37f]" : "bg-zinc-600"}`}></span>
+        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${isActive ? "bg-[#10a37f]" : "bg-zinc-300"}`}></span>
         <span className="truncate">{conversation.title}</span>
       </div>
 
       <div className="flex items-center gap-1 opacity-80 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         <button
           onClick={onTogglePin}
-          className="p-1 text-zinc-500 hover:text-[#10a37f] rounded transition-colors"
+          className="p-1 text-zinc-400 hover:text-[#10a37f] rounded transition-colors"
           title={conversation.isPinned ? "Unpin" : "Pin"}
         >
           <Pin className={`w-3.5 h-3.5 ${conversation.isPinned ? "fill-[#10a37f] text-[#10a37f]" : ""}`} />
         </button>
         <button
           onClick={onDelete}
-          className="p-1 text-zinc-500 hover:text-red-400 rounded transition-colors"
+          className="p-1 text-zinc-400 hover:text-red-500 rounded transition-colors"
           title="Delete chat"
         >
           <Trash2 className="w-3.5 h-3.5" />

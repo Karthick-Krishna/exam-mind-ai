@@ -327,7 +327,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] min-h-[100dvh] bg-[#212121] overflow-hidden text-zinc-200">
+    <div className="flex flex-col h-[100dvh] min-h-[100dvh] bg-white overflow-hidden text-zinc-900">
       <Navbar />
 
       <div className="flex flex-1 overflow-hidden relative">
@@ -348,29 +348,29 @@ export default function ChatPage() {
           onCloseMobile={() => setMobileSidebarOpen(false)}
         />
 
-        {/* Main Conversation Canvas */}
-        <main className="flex-1 flex flex-col bg-[#212121] relative overflow-hidden w-full min-w-0">
-          {/* ChatGPT Ambient Subtle Glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] chatgpt-ambient-glow pointer-events-none" />
+        {/* Main Conversation Canvas (Light Pure White) */}
+        <main className="flex-1 flex flex-col bg-white relative overflow-hidden w-full min-w-0">
+          {/* Subtle Ambient Illumination */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[250px] chatgpt-ambient-glow pointer-events-none" />
 
           {/* Mobile Top Bar */}
-          <div className="flex md:hidden items-center justify-between px-3 py-2 border-b border-white/[0.08] bg-[#171717]/95 backdrop-blur-xl z-20 text-xs gap-1.5">
+          <div className="flex md:hidden items-center justify-between px-3 py-2 border-b border-zinc-200 bg-white/95 backdrop-blur-xl z-20 text-xs gap-1.5">
             <button
               onClick={() => setMobileSidebarOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2f2f2f] hover:bg-[#383838] border border-white/10 text-zinc-200 font-medium active:scale-95 transition-all text-xs flex-shrink-0"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 font-medium active:scale-95 transition-all text-xs flex-shrink-0"
               aria-label="Open chats list"
             >
               <PanelLeft className="w-3.5 h-3.5 text-[#10a37f]" />
               <span className="hidden min-[360px]:inline">Chats</span>
               {conversations.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-[#10a37f]/20 text-[#10a37f] font-mono text-[10px] border border-[#10a37f]/30">
+                <span className="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-800 font-mono text-[10px] border border-emerald-200 font-medium">
                   {conversations.length}
                 </span>
               )}
             </button>
 
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[10px] font-mono text-[#10a37f] bg-[#10a37f]/10 border border-[#10a37f]/20 px-2 py-0.5 rounded-md flex items-center gap-1 truncate font-medium">
+              <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1 truncate font-medium">
                 <Globe className="w-3 h-3 text-[#10a37f] flex-shrink-0" />
                 <span className="truncate">Deep Search</span>
               </span>
@@ -378,7 +378,7 @@ export default function ChatPage() {
               {messages.length > 0 && (
                 <button
                   onClick={handleExportChat}
-                  className="p-1.5 rounded-lg bg-[#2f2f2f] border border-white/10 text-zinc-300 hover:text-white flex-shrink-0 active:scale-95 transition-colors"
+                  className="p-1.5 rounded-lg bg-zinc-100 border border-zinc-200 text-zinc-700 hover:text-zinc-900 flex-shrink-0 active:scale-95 transition-colors"
                   title="Export"
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -387,7 +387,7 @@ export default function ChatPage() {
 
               <button
                 onClick={handleNewChat}
-                className="p-1.5 rounded-lg bg-[#2f2f2f] hover:bg-[#383838] text-white border border-white/10 flex-shrink-0 active:scale-95 transition-colors"
+                className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white flex-shrink-0 active:scale-95 transition-colors shadow-xs"
                 title="New chat"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -397,13 +397,13 @@ export default function ChatPage() {
 
           {/* Desktop Top Bar for active session */}
           {messages.length > 0 && (
-            <div className="hidden md:flex items-center justify-between px-6 py-2 border-b border-white/[0.08] bg-[#212121]/80 backdrop-blur-xl z-10 text-xs">
+            <div className="hidden md:flex items-center justify-between px-6 py-2 border-b border-zinc-200 bg-white/80 backdrop-blur-xl z-10 text-xs">
               <div className="flex items-center gap-3">
-                <span className="font-semibold text-white truncate max-w-sm">
+                <span className="font-semibold text-zinc-900 truncate max-w-sm">
                   {conversations.find((c) => c.id === activeConversationId)?.title ||
                     "Current Session"}
                 </span>
-                <span className="text-[10px] font-mono text-[#10a37f] bg-[#10a37f]/10 border border-[#10a37f]/20 px-2 py-0.5 rounded-md flex items-center gap-1 font-medium">
+                <span className="text-[10px] font-mono text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1 font-medium">
                   <Globe className="w-3 h-3 text-[#10a37f]" />
                   <span>Deep Search Active</span>
                 </span>
@@ -412,7 +412,7 @@ export default function ChatPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleExportChat}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2f2f2f] hover:bg-[#383838] text-zinc-300 hover:text-white border border-white/10 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-950 border border-zinc-200 transition-colors font-medium shadow-2xs"
                   title="Export Markdown transcript"
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -420,7 +420,7 @@ export default function ChatPage() {
                 </button>
                 <button
                   onClick={handleNewChat}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#2f2f2f] hover:bg-[#383838] text-zinc-300 hover:text-white border border-white/10 transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 hover:text-zinc-950 border border-zinc-200 transition-colors font-medium shadow-2xs"
                   title="Clear chat"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -431,7 +431,7 @@ export default function ChatPage() {
           )}
 
           {/* Conversation Stream or Welcome Screen */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto bg-white">
             {messages.length === 0 ? (
               <WelcomeScreen
                 onSelectPrompt={(p) => {
@@ -439,7 +439,7 @@ export default function ChatPage() {
                 }}
               />
             ) : (
-              <div className="divide-y divide-white/[0.02]">
+              <div className="divide-y divide-zinc-100">
                 {messages.map((msg) => (
                   <ChatMessage
                     key={msg.id}
