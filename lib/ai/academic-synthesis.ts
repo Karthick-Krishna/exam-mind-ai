@@ -227,31 +227,8 @@ int main() {
   }
 
   // =========================================================================
-  // GENERAL KNOWLEDGE / RESEARCH DOSSIER
+  // DEEP SEARCH COMPREHENSIVE RESEARCH DOSSIER
   // =========================================================================
-  if (mode === "QUICK_ANSWER") {
-    response += `### Core Explanation\n\n`;
-    if (sourceItems.length > 0) {
-      response += `${sourceItems[0].snippet}\n\n`;
-      if (sourceItems[0].link) {
-        response += `**Verified Reference**: [${sourceItems[0].title}](${sourceItems[0].link})\n`;
-      }
-    } else {
-      response += `Comprehensive academic principles confirm that **${cleanQuery}** operates according to established scientific and computational foundations.\n`;
-    }
-    return response;
-  }
-
-  if (mode === "THINKING") {
-    response += `### Systematic Reasoning & Proof Steps\n\n`;
-    response += `1. **Initial Axioms & Premises**: We establish the canonical conditions governing **${cleanQuery}**.\n`;
-    response += `2. **Intermediate Lemmas**: Applying foundational definitions verifies consistency across boundary limits.\n`;
-    response += `3. **Logical Deductions**: Every invariant holds without empirical contradiction.\n`;
-    response += `4. **Conclusion**: The derived theorem stands corroborated.\n\n`;
-    return response;
-  }
-
-  // Deep Search mode
   response += `### 1. Executive Research Summary & Definitive Findings\n\n`;
   response += `This comprehensive research dossier examines **${cleanQuery}** by synthesizing verified Google web search intelligence, authoritative structured databases, and peer-reviewed literature as of **${currentDate}**.\n\n`;
 

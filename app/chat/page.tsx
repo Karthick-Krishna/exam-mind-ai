@@ -428,12 +428,9 @@ export default function ChatPage() {
           <div className="flex-1 overflow-y-auto">
             {messages.length === 0 ? (
               <WelcomeScreen
-                onSelectPrompt={(p, m) => {
-                  if (m) setCurrentMode(m);
+                onSelectPrompt={(p) => {
                   handleSendMessage(p);
                 }}
-                currentMode={currentMode}
-                onSelectMode={(m) => setCurrentMode(m)}
               />
             ) : (
               <div className="divide-y divide-white/[0.02]">

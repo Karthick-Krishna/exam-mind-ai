@@ -294,8 +294,8 @@ export function ChatMessage({
             <HighlightedAnswer answerText={highlightedAnswer} isStreaming={isHighlightedStreaming} />
           )}
 
-          {/* Supporting Markdown Explanation & Content with Live Typing Animation */}
-          {remainingContent && (
+          {/* Supporting Markdown Explanation & Content with Live Typing Animation (Assistant only) */}
+          {isAssistant && remainingContent && (
             <div className="text-slate-200 leading-relaxed relative">
               <MarkdownRenderer content={remainingContent} />
               {isRemainingStreaming && (

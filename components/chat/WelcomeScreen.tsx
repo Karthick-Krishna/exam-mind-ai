@@ -4,8 +4,6 @@ import React from "react";
 import {
   Sparkles,
   Globe,
-  Zap,
-  Brain,
   ArrowRight,
   Calculator,
   Code2,
@@ -21,49 +19,47 @@ interface WelcomeScreenProps {
 
 export function WelcomeScreen({
   onSelectPrompt,
-  currentMode = "DEEP_SEARCH",
-  onSelectMode,
 }: WelcomeScreenProps) {
   const suggestedCards = [
     {
       title: "Direct Answer & Fact Search",
       desc: "Who is the Chief Minister of Tamil Nadu? (Verified live data as of today)",
       prompt: "Who is the Chief Minister of Tamil Nadu?",
-      icon: Zap,
-      mode: "QUICK_ANSWER" as ResponseMode,
-      color: "from-amber-500/20 to-orange-500/10",
-      accent: "text-amber-400",
-      badge: "Quick Answer",
+      icon: Globe,
+      mode: "DEEP_SEARCH" as ResponseMode,
+      color: "from-blue-500/20 to-cyan-500/10",
+      accent: "text-cyan-400",
+      badge: "Deep Search",
     },
     {
       title: "Step-by-Step Differentiation",
       desc: "Differentiate x^3 + 5x^2 + 2x with verified symbolic steps.",
       prompt: "Differentiate x^3 + 5x^2 + 2x with respect to x.",
       icon: Calculator,
-      mode: "QUICK_ANSWER" as ResponseMode,
+      mode: "DEEP_SEARCH" as ResponseMode,
       color: "from-cyan-500/20 to-blue-500/10",
       accent: "text-cyan-400",
-      badge: "Math Solver",
+      badge: "Deep Search",
     },
     {
       title: "Lagrange's Mean Value Theorem",
       desc: "Exhaustive conditions, mathematical proof, geometric intuition & worked example.",
       prompt: "Explain and solve Lagrange's Mean Value Theorem with conditions and a solved example.",
-      icon: Brain,
-      mode: "THINKING" as ResponseMode,
+      icon: Calculator,
+      mode: "DEEP_SEARCH" as ResponseMode,
       color: "from-purple-500/20 to-indigo-500/10",
       accent: "text-purple-400",
-      badge: "Thinking",
+      badge: "Deep Search",
     },
     {
       title: "Optimal Java Prime Checker",
       desc: "Executable Java program with O(sqrt(n)) complexity proof and boundary validation.",
       prompt: "Write a Java program to check whether a number is prime, with explanation and complexity.",
       icon: Code2,
-      mode: "THINKING" as ResponseMode,
+      mode: "DEEP_SEARCH" as ResponseMode,
       color: "from-emerald-500/20 to-cyan-500/10",
       accent: "text-emerald-400",
-      badge: "Code Sandbox",
+      badge: "Deep Search",
     },
     {
       title: "Database Normalization (1NF to 3NF)",
@@ -110,46 +106,15 @@ export function WelcomeScreen({
           </h1>
 
           <p className="max-w-2xl mx-auto text-xs sm:text-sm md:text-base text-slate-400 leading-relaxed px-1">
-            Connected to dual open-source AI engines (GPT-OSS & Qwen 2.5) with real-time web search, deterministic mathematical verification, and isolated code execution.
+            Connected to dual open-source AI engines (GPT-OSS & Qwen 2.5) with real-time web search and scraping across all sites on Google, grounded as of today.
           </p>
         </div>
 
-        {/* 3-Mode Selector Bar */}
+        {/* Deep Search Engine Permanent Active Indicator */}
         <div className="pt-0.5 pb-0.5 flex justify-center">
-          <div className="inline-flex items-center p-1 rounded-xl bg-black/60 border border-white/10 gap-1 text-xs">
-            <button
-              onClick={() => onSelectMode?.("QUICK_ANSWER")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all ${
-                currentMode === "QUICK_ANSWER"
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-md"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Quick Answer</span>
-            </button>
-            <button
-              onClick={() => onSelectMode?.("THINKING")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all ${
-                currentMode === "THINKING"
-                  ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-md"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Brain className="w-3.5 h-3.5" />
-              <span>Thinking</span>
-            </button>
-            <button
-              onClick={() => onSelectMode?.("DEEP_SEARCH")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition-all ${
-                currentMode === "DEEP_SEARCH"
-                  ? "bg-blue-500/20 text-cyan-300 border border-cyan-500/40 shadow-md"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>Deep Search</span>
-            </button>
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-xl bg-blue-950/70 border border-blue-500/30 text-[11px] sm:text-xs font-semibold text-cyan-300 shadow-md">
+            <Globe className="w-3.5 h-3.5 text-cyan-400 animate-pulse flex-shrink-0" />
+            <span className="truncate">Deep Search Active Across All Sites on Google</span>
           </div>
         </div>
 

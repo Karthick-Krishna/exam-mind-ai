@@ -30,7 +30,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-white/[0.08] bg-[#030712]/90 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 h-13 sm:h-16 flex items-center justify-between">
         {/* Brand Crest */}
-        <Link href="/" className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
+        <Link href="/chat" className="flex items-center gap-2.5 sm:gap-3 group min-w-0">
           <div className="relative flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl overflow-hidden bg-black border border-white/10 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all flex-shrink-0">
             <img
               src="/logo.png"

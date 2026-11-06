@@ -232,16 +232,6 @@ export function routePromptToModel(
     };
   }
 
-  // Thinking mode with deep reasoning -> Qwen
-  if (mode === "THINKING") {
-    return {
-      preferred: "qwen",
-      fallback: "gpt-oss",
-      reason: "Qwen 2.5 specialized for step-by-step reasoning, mathematical proof, and logic",
-      displayName: "Qwen 2.5 OSS (Thinking Engine)",
-    };
-  }
-
   // Multimodal image questions
   if (hasVision) {
     return {

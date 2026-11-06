@@ -1,4 +1,4 @@
-export type ResponseMode = "QUICK_ANSWER" | "THINKING" | "DEEP_SEARCH";
+export type ResponseMode = "DEEP_SEARCH";
 
 // Backwards compatibility alias
 export type TeachingMode = ResponseMode;
@@ -12,25 +12,11 @@ export const RESPONSE_MODES: {
   description: string;
 }[] = [
   {
-    id: "QUICK_ANSWER",
-    name: "Quick Answer",
-    badge: "Fast & Direct",
-    icon: "Zap",
-    description: "Lightning-fast, direct, concise, verified answers without delays when pretrained knowledge suffices.",
-  },
-  {
-    id: "THINKING",
-    name: "Thinking",
-    badge: "Deep Reasoning",
-    icon: "Brain",
-    description: "Step-by-step reasoning, mathematical derivations, algorithmic proofs, architecture trade-offs, and verification steps.",
-  },
-  {
     id: "DEEP_SEARCH",
     name: "Deep Search",
     badge: "Google & Live Web",
     icon: "Globe",
-    description: "Multi-source real-time search across Google and the live web, structured databases, RAG, and cross-source synthesis.",
+    description: "Multi-source real-time search across all sites on Google, deep page scraping, research dossiers, and verified citations.",
   },
 ];
 
@@ -55,25 +41,7 @@ export function buildSystemPrompt(params: {
   });
   const currentYear = now.getFullYear();
 
-  const mode = (params.mode || "DEEP_SEARCH") as ResponseMode;
-
-  let modeInstruction = "";
-  if (mode === "QUICK_ANSWER") {
-    modeInstruction = `MODE: QUICK ANSWER (FAST, DIRECT, VERIFIED & CONCISE)
-- Deliver an immediate, razor-sharp, verified answer to the user's question.
-- Do not add conversational fluff or unrequested preamble.
-- Deliver the core answer in the prominent :::answer block.
-- Follow up with the exact essential explanation, key formula, or minimal complete working code.
-- Prioritize speed and clarity.`;
-  } else if (mode === "THINKING") {
-    modeInstruction = `MODE: THINKING (STEP-BY-STEP REASONING, MATHEMATICAL DERIVATIONS & RIGOROUS PROOFS)
-- Present exhaustive step-by-step analytical reasoning and mathematical derivations.
-- Break down the logical structure: Assumptions -> Hypotheses -> Intermediate Derivations -> Boundary Invariants -> Final Q.E.D.
-- For mathematics, show every intermediate algebraic manipulation in LaTeX ($...$ and $$...$$).
-- For programming, detail algorithmic invariants, memory lifecycle, trade-offs, and Big-O complexity.
-- Formally state conditions, lemmas, and verify all edge cases.`;
-  } else {
-    modeInstruction = `MODE: DEEP SEARCH (FULL RESEARCH DOSSIER, RIGOROUS ANALYSIS & MULTI-SOURCE WEB SYNTHESIS)
+  const modeInstruction = `MODE: DEEP SEARCH (FULL RESEARCH DOSSIER, RIGOROUS ANALYSIS & MULTI-SOURCE WEB SYNTHESIS)
 - Deliver a comprehensive, deeply referenced academic research paper / research dossier on the prompt.
 - Ground your analysis deeply in real-time Google & live web research scraped from websites across the internet.
 - Synthesize all retrieved sources into an authoritative, deeply referenced research briefing.
@@ -85,7 +53,6 @@ export function buildSystemPrompt(params: {
   ### 3. Systematic Deep-Dive & Methodological Breakdown
   ### 4. Comparative Academic Analysis & Current Developments
   ### 5. Verified Source Bibliography & Knowledge Matrix`;
-  }
 
   let ragContext = "";
   if (params.documentContext && params.documentContext.trim().length > 0) {

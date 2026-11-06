@@ -8,8 +8,6 @@ import {
   Image as ImageIcon,
   BookOpen,
   Globe,
-  Zap,
-  Brain,
   X,
   FileText
 } from "lucide-react";
@@ -184,60 +182,18 @@ export function ChatComposer({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={
-            currentMode === "QUICK_ANSWER"
-              ? "Ask anything for a fast, verified answer (e.g. formula, definition, code)..."
-              : currentMode === "THINKING"
-              ? "Ask a complex derivation, math proof, or algorithm trade-off..."
-              : "Ask any question (Deep Search across Google & live web active)..."
-          }
+          placeholder="Ask any question, research topic, or code problem (Deep Search across Google & live web active)..."
           rows={1}
           className="w-full pt-3 pb-2 px-3.5 sm:px-4 bg-transparent text-base sm:text-sm text-white placeholder-slate-500 focus:outline-none resize-none max-h-36 sm:max-h-48 leading-relaxed"
         />
 
         {/* Toolbar Row */}
         <div className="flex items-center justify-between px-2 sm:px-3 pb-2 sm:pb-2.5 pt-1 border-t border-white/[0.04] gap-1">
-          {/* Left: 3-Mode Intelligent Selector */}
-          <div className="flex items-center p-0.5 rounded-lg bg-black/40 border border-white/10 text-[11px] font-medium">
-            <button
-              type="button"
-              onClick={() => onSelectMode("QUICK_ANSWER")}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all ${
-                currentMode === "QUICK_ANSWER"
-                  ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-              title="Quick Answer mode: Fast, direct, concise, verified answers"
-            >
-              <Zap className="w-3 h-3 flex-shrink-0" />
-              <span className="hidden min-[480px]:inline">Quick</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onSelectMode("THINKING")}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all ${
-                currentMode === "THINKING"
-                  ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-              title="Thinking mode: Step-by-step reasoning, mathematical proofs, derivations"
-            >
-              <Brain className="w-3 h-3 flex-shrink-0" />
-              <span className="hidden min-[480px]:inline">Thinking</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => onSelectMode("DEEP_SEARCH")}
-              className={`flex items-center gap-1 px-2 py-1 rounded-md transition-all ${
-                currentMode === "DEEP_SEARCH"
-                  ? "bg-blue-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
-              }`}
-              title="Deep Search mode: Real-time search across all Google sites & live web"
-            >
-              <Globe className="w-3 h-3 flex-shrink-0" />
-              <span className="hidden min-[480px]:inline">Deep Search</span>
-            </button>
+          {/* Left: Deep Search Active Badge */}
+          <div className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 rounded-lg bg-blue-950/70 border border-blue-500/30 text-[11px] sm:text-xs font-semibold text-cyan-300 shadow-sm flex-shrink-0">
+            <Globe className="w-3.5 h-3.5 text-cyan-400 animate-pulse flex-shrink-0" />
+            <span className="hidden min-[380px]:inline">Deep Search Active</span>
+            <span className="inline min-[380px]:hidden">Deep Search</span>
           </div>
 
           {/* Right: Attachments & Send Action */}

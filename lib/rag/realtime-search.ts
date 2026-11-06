@@ -104,87 +104,11 @@ export function classifySearchIntent(query: string, mode: string = "DEEP_SEARCH"
     return { needsLiveSearch: false, searchQueries: [], reason: "Empty query" };
   }
 
-  const lower = clean.toLowerCase();
-
-  // Temporal and live indicators that REQUIRE real-time web retrieval
-  const temporalKeywords = [
-    "chief minister",
-    "prime minister",
-    "president",
-    "current",
-    "today",
-    "now",
-    "latest",
-    "recent",
-    "weather",
-    "temperature",
-    "forecast",
-    "price of",
-    "stock price",
-    "exchange rate",
-    "currency",
-    "release date",
-    "version",
-    "nobel prize 2024",
-    "nobel prize 2025",
-    "olympics",
-    "election",
-    "news",
-    "who is currently",
-    "who is the new",
-    "2024",
-    "2025",
-    "2026",
-  ];
-
-  const hasTemporalKeyword = temporalKeywords.some((kw) => lower.includes(kw));
-
-  // Pure pretrained academic queries (math, basic science, standard coding)
-  const isPureAcademic =
-    /\b(photosynthesis|mitochondria|newton's|newtons law|lagrange|lmvt|rolle|mean value theorem|prime number|bubble sort|quick sort|binary search|what is an operating system|what is a database|normalize|1nf|2nf|3nf|differentiate|integrate|derivative of|solve x\^2|quadratic formula|c program|java program|python program)\b/i.test(
-      lower
-    ) && !hasTemporalKeyword;
-
-  // Deep Search mode: always conducts deep multi-source research
-  if (mode === "DEEP_SEARCH") {
-    return {
-      needsLiveSearch: true,
-      searchQueries: [clean, `${clean} authoritative reference`],
-      reason: "Deep Search mode active: Performing real-time multi-source research across all Google sites",
-    };
-  }
-
-  // Quick Answer or Thinking mode:
-  if (hasTemporalKeyword) {
-    return {
-      needsLiveSearch: true,
-      searchQueries: [clean],
-      reason: "Inquiry requires current, live, or time-sensitive verified data",
-    };
-  }
-
-  if (isPureAcademic) {
-    return {
-      needsLiveSearch: false,
-      searchQueries: [],
-      reason: "Inquiry answerable with high accuracy from model pretrained knowledge",
-    };
-  }
-
-  // Default: if mode is Quick Answer, prefer pretrained speed unless temporal
-  if (mode === "QUICK_ANSWER") {
-    return {
-      needsLiveSearch: false,
-      searchQueries: [],
-      reason: "Quick Answer mode prioritizing pretrained model knowledge for sub-second latency",
-    };
-  }
-
-  // Thinking mode: prefer reasoning
+  // Deep Search mode: Always performs live multi-source web research across Google and live sites
   return {
-    needsLiveSearch: false,
-    searchQueries: [],
-    reason: "Thinking mode prioritizing internal logical derivation and mathematical proof",
+    needsLiveSearch: true,
+    searchQueries: [clean, `${clean} authoritative reference`],
+    reason: "Deep Search mode active: Performing real-time multi-source research across all Google sites",
   };
 }
 
