@@ -30,9 +30,24 @@ export const AVAILABLE_MODELS: ModelEndpointInfo[] = [
   },
 ];
 
+export interface ChatMessageTextPart {
+  type: "text";
+  text: string;
+}
+
+export interface ChatMessageImagePart {
+  type: "image_url";
+  image_url: {
+    url: string;
+    detail?: "auto" | "low" | "high";
+  };
+}
+
+export type ChatMessageContentPart = ChatMessageTextPart | ChatMessageImagePart;
+
 export interface ChatMessageParam {
   role: "system" | "user" | "assistant";
-  content: string;
+  content: string | ChatMessageContentPart[];
 }
 
 export interface InferenceOptions {
@@ -43,6 +58,7 @@ export interface InferenceOptions {
   top_p?: number;
   max_tokens?: number;
   stream?: boolean;
+  hasVision?: boolean;
 }
 
 export interface EndpointTestResult {
@@ -68,6 +84,30 @@ export interface ModelBackendConfig {
   apiKey: string;
   model: string;
   displayName: string;
+}
+
+/**
+ * Extracts plain text from either a string content or ChatMessageContentPart[]
+ */
+export function extractTextFromContent(content: string | ChatMessageContentPart[] | undefined): string {
+  if (!content) return "";
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => (part.type === "text" ? part.text : ""))
+      .filter(Boolean)
+      .join(" ");
+  }
+  return "";
+}
+
+/**
+ * Checks if any message in the history contains an image payload
+ */
+export function hasImageInMessages(messages: ChatMessageParam[]): boolean {
+  return messages.some(
+    (m) => Array.isArray(m.content) && m.content.some((p) => p.type === "image_url")
+  );
 }
 
 /**
@@ -144,12 +184,13 @@ export async function getModelBackendConfig(
  * - Programming, code debugging, software engineering, algorithms -> Qwen
  * - Mathematics, calculus, formal logic, proofs -> Qwen
  * - General knowledge, academic explanations, essays, science, humanities -> GPT-OSS
- * - Deep Search research dossiers -> GPT-OSS
- * - Technical Thinking mode -> Qwen
+ * - Thinking mode -> Qwen for technical rigor
+ * - Deep Search mode -> GPT-OSS for comprehensive literature synthesis
  */
 export function routePromptToModel(
   prompt: string,
-  mode: ResponseMode = "DEEP_SEARCH"
+  mode: ResponseMode = "DEEP_SEARCH",
+  hasVision: boolean = false
 ): {
   preferred: "gpt-oss" | "qwen";
   fallback: "gpt-oss" | "qwen";
@@ -188,6 +229,26 @@ export function routePromptToModel(
       fallback: "gpt-oss",
       reason: "Qwen 2.5 specialized for mathematical problem-solving and rigorous derivations",
       displayName: "Qwen 2.5 OSS (Mathematics & Logic)",
+    };
+  }
+
+  // Thinking mode with deep reasoning -> Qwen
+  if (mode === "THINKING") {
+    return {
+      preferred: "qwen",
+      fallback: "gpt-oss",
+      reason: "Qwen 2.5 specialized for step-by-step reasoning, mathematical proof, and logic",
+      displayName: "Qwen 2.5 OSS (Thinking Engine)",
+    };
+  }
+
+  // Multimodal image questions
+  if (hasVision) {
+    return {
+      preferred: "gpt-oss",
+      fallback: "qwen",
+      reason: "GPT-OSS multimodal vision pipeline for image understanding and visual reasoning",
+      displayName: "GPT-OSS (Vision & Multimodal)",
     };
   }
 
@@ -250,11 +311,23 @@ export function resolveInferenceEndpoint(baseUrl: string): { url: string; isDire
  * Resolves target model string sent over HTTP to the specific API provider:
  * Properly maps generic IDs to provider-specific slugs (Groq, OpenRouter, Ollama, Pollinations).
  */
-export function resolveTargetModelName(backend: "gpt-oss" | "qwen", requestedModel: string, endpointUrl: string): string {
+export function resolveTargetModelName(
+  backend: "gpt-oss" | "qwen",
+  requestedModel: string,
+  endpointUrl: string,
+  hasVision: boolean = false
+): string {
   const isPollinations = endpointUrl.includes("pollinations");
   const isGroq = endpointUrl.includes("groq");
   const isOpenRouter = endpointUrl.includes("openrouter");
   const isOllama = endpointUrl.includes("11434") || endpointUrl.includes("ollama");
+
+  if (hasVision) {
+    if (isPollinations) return "openai-large";
+    if (isGroq) return "llama-3.2-11b-vision-preview";
+    if (isOpenRouter) return "qwen/qwen-2.5-vl-72b-instruct";
+    if (isOllama) return "llava";
+  }
 
   if (backend === "qwen") {
     if (isPollinations) return "qwen-coder";
@@ -402,10 +475,15 @@ export async function testSingleModel(
   }
 }
 
-/**
- * Backward compatibility test function
- */
-export async function testModelEndpoint(
+export async function testQwenModel(
+  baseUrlOverride?: string,
+  modelOverride?: string,
+  apiKeyOverride?: string
+): Promise<EndpointTestResult> {
+  return testSingleModel("qwen", baseUrlOverride, modelOverride, apiKeyOverride);
+}
+
+export async function testGptOssModel(
   baseUrlOverride?: string,
   modelOverride?: string,
   apiKeyOverride?: string
@@ -421,8 +499,11 @@ export async function executeMultiModelStream(
   messages: ChatMessageParam[],
   options: InferenceOptions = {}
 ): Promise<{ stream: ReadableStream<Uint8Array>; modelUsed: string }> {
-  const lastUserPrompt = [...messages].reverse().find((m) => m.role === "user")?.content || "";
-  const routed = routePromptToModel(lastUserPrompt, options.mode || "DEEP_SEARCH");
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+  const lastUserPrompt = extractTextFromContent(lastUserMsg?.content);
+  const hasVision = options.hasVision || hasImageInMessages(messages);
+
+  const routed = routePromptToModel(lastUserPrompt, options.mode || "DEEP_SEARCH", hasVision);
 
   const preferredBackend = (options.backend && options.backend !== "auto") ? options.backend : routed.preferred;
   const fallbackBackend = preferredBackend === "qwen" ? "gpt-oss" : "qwen";
@@ -430,9 +511,11 @@ export async function executeMultiModelStream(
   const preferredConfig = await getModelBackendConfig(preferredBackend);
   const fallbackConfig = await getModelBackendConfig(fallbackBackend);
 
+  const optsWithVision = { ...options, hasVision };
+
   // Attempt 1: Preferred Model
   try {
-    const stream = await callHttpInferenceStream(preferredConfig, messages, options);
+    const stream = await callHttpInferenceStream(preferredConfig, messages, optsWithVision);
     if (stream) {
       return { stream, modelUsed: preferredConfig.displayName };
     }
@@ -443,7 +526,7 @@ export async function executeMultiModelStream(
   // Attempt 2: Automatic Model Fallback to Alternate Backend
   try {
     console.log(`Failing over to secondary open-source model (${fallbackConfig.displayName})...`);
-    const fallbackStream = await callHttpInferenceStream(fallbackConfig, messages, options);
+    const fallbackStream = await callHttpInferenceStream(fallbackConfig, messages, optsWithVision);
     if (fallbackStream) {
       return {
         stream: fallbackStream,
@@ -467,7 +550,7 @@ export async function executeMultiModelStream(
           displayName: "Open Cloud Cluster",
         },
         messages,
-        options
+        optsWithVision
       );
       if (publicStream) {
         return {
@@ -507,8 +590,11 @@ export async function generateChatCompletion(
   messages: ChatMessageParam[],
   options: InferenceOptions = {}
 ): Promise<string> {
-  const lastUserPrompt = [...messages].reverse().find((m) => m.role === "user")?.content || "";
-  const routed = routePromptToModel(lastUserPrompt, options.mode || "DEEP_SEARCH");
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+  const lastUserPrompt = extractTextFromContent(lastUserMsg?.content);
+  const hasVision = options.hasVision || hasImageInMessages(messages);
+
+  const routed = routePromptToModel(lastUserPrompt, options.mode || "DEEP_SEARCH", hasVision);
 
   const preferredBackend = (options.backend && options.backend !== "auto") ? options.backend : routed.preferred;
   const fallbackBackend = preferredBackend === "qwen" ? "gpt-oss" : "qwen";
@@ -520,7 +606,7 @@ export async function generateChatCompletion(
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 18000);
     const { url: endpoint } = resolveInferenceEndpoint(config.baseUrl);
-    const actualModel = resolveTargetModelName(config.backend, config.model, endpoint);
+    const actualModel = resolveTargetModelName(config.backend, config.model, endpoint, hasVision);
 
     const res = await fetch(endpoint, {
       method: "POST",
@@ -579,7 +665,7 @@ async function callHttpInferenceStream(
   options: InferenceOptions
 ): Promise<ReadableStream<Uint8Array> | null> {
   const { url: endpoint } = resolveInferenceEndpoint(config.baseUrl);
-  const actualModel = resolveTargetModelName(config.backend, config.model, endpoint);
+  const actualModel = resolveTargetModelName(config.backend, config.model, endpoint, options.hasVision);
   const controller = new AbortController();
 
   // 25s connection & token window

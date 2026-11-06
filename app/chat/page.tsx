@@ -83,7 +83,7 @@ export default function ChatPage() {
         const data = await res.json();
         setMessages(data.messages || []);
         if (data.conversation?.teachingMode) {
-          setCurrentMode("DEEP_SEARCH");
+          setCurrentMode(data.conversation.teachingMode as ResponseMode);
         }
       }
     } catch (e) {
@@ -153,6 +153,7 @@ export default function ChatPage() {
         conversationId: activeConversationId || "temp",
         role: "user",
         content: text,
+        attachments,
         createdAt: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, tempUserMsg]);
@@ -188,6 +189,7 @@ export default function ChatPage() {
           documentIds: selectedDocumentIds,
           regenerate: isRegeneration,
           requestId,
+          attachments,
         }),
         signal: controller.signal,
       });
@@ -214,6 +216,7 @@ export default function ChatPage() {
       }
 
       const returnedModelUsed = response.headers.get("X-Model-Used") || "EXAM MIND AI";
+      const returnedVerification = response.headers.get("X-Verification-Status");
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -235,6 +238,7 @@ export default function ChatPage() {
                     content: streamedContent,
                     modelUsed: returnedModelUsed,
                     citations: parsedCitations.length > 0 ? parsedCitations : undefined,
+                    verificationBadge: returnedVerification || undefined,
                   }
                 : msg
             )

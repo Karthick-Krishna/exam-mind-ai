@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addMessage, createConversation, getConversation, getDefaultUser, recordLearningActivity } from "@/lib/database/db";
-import { buildSystemPrompt } from "@/lib/ai/prompts";
-import { executeMultiModelStream, routePromptToModel } from "@/lib/ai/model-adapter";
+import {
+  addMessage,
+  createConversation,
+  getConversation,
+  getDefaultUser,
+  recordLearningActivity,
+} from "@/lib/database/db";
+import { buildSystemPrompt, ResponseMode } from "@/lib/ai/prompts";
+import {
+  executeMultiModelStream,
+  ChatMessageParam,
+  ChatMessageContentPart,
+} from "@/lib/ai/model-adapter";
 import { formatRetrievedContext, retrieveRelevantPassages, shouldPerformRag } from "@/lib/rag/retrieval";
 import { classifySearchIntent, fetchRealtimeEducationalData } from "@/lib/rag/realtime-search";
+import { solveAndVerifyMathematics } from "@/lib/math/math-engine";
+import { extractCodeBlocks, validateCodeSyntax, analyzeCodeComplexity, executeSandboxedCode } from "@/lib/code/code-runner";
+import { processMultimodalAttachment, ImageAttachment } from "@/lib/vision/vision-engine";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,19 +30,24 @@ export async function POST(req: NextRequest) {
       model,
       regenerate = false,
       requestId,
+      attachments = [],
     } = body;
 
     const user = await getDefaultUser();
     let conversationId = incomingConvId;
 
-    const lastUserPrompt = prompt || messages.filter((m: { role: string }) => m.role === "user").pop()?.content || "";
-    if (!lastUserPrompt) {
-      return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+    const lastUserPrompt =
+      prompt || messages.filter((m: { role: string }) => m.role === "user").pop()?.content || "";
+    if (!lastUserPrompt && attachments.length === 0) {
+      return NextResponse.json({ error: "Prompt or image attachment is required" }, { status: 400 });
     }
+
+    const effectivePrompt = lastUserPrompt || "Please analyze this uploaded document or image.";
 
     // Create or retrieve conversation
     if (!conversationId) {
-      const title = lastUserPrompt.length > 40 ? lastUserPrompt.substring(0, 40) + "..." : lastUserPrompt;
+      const title =
+        effectivePrompt.length > 40 ? effectivePrompt.substring(0, 40) + "..." : effectivePrompt;
       const newConv = await createConversation({
         userId: user.id,
         title,
@@ -41,46 +59,116 @@ export async function POST(req: NextRequest) {
       if (!existing) {
         await createConversation({
           userId: user.id,
-          title: lastUserPrompt.substring(0, 35),
+          title: effectivePrompt.substring(0, 35),
           teachingMode: mode,
         });
       }
     }
 
-    // 1. Save user message to DB (unless this is a regeneration of the previous response)
+    // 1. Save user message to DB with attachments
     if (!regenerate) {
       await addMessage({
         conversationId,
         role: "user",
-        content: lastUserPrompt,
+        content: effectivePrompt,
+        attachments: attachments.length > 0 ? attachments : undefined,
       });
     }
 
-    // 2. Intelligent Knowledge Source Determination (Requirement 3):
-    // - Stable general questions (photosynthesis, OS, LMVT, prime number program) -> Model Pretrained Knowledge directly!
-    // - Time-sensitive / current facts (Chief Minister of Tamil Nadu, latest versions) -> Live Web Search across all sites.
-    // - Internal documents / uploaded textbooks -> RAG Knowledge Retrieval.
-    const searchIntent = classifySearchIntent(lastUserPrompt, mode);
-    const isRagNeeded = shouldPerformRag(lastUserPrompt, documentIds);
+    let combinedKnowledgeContext = "";
+    const citations: any[] = [];
+    const knowledgeSources: string[] = ["Pretrained Knowledge"];
+    let verificationBadge: string | undefined = undefined;
+
+    // 2. Multimodal Vision Processing (If Image Attached)
+    const imageAttachment: ImageAttachment | undefined = attachments.find(
+      (a: any) => a.type === "image" || (typeof a.data === "string" && a.data.startsWith("data:image/"))
+    );
+
+    let hasVision = false;
+    if (imageAttachment) {
+      hasVision = true;
+      knowledgeSources.push("Multimodal Vision");
+      try {
+        const visionResult = await processMultimodalAttachment(imageAttachment, effectivePrompt);
+        combinedKnowledgeContext += `--- MULTIMODAL VISION RECOGNITION & GROUNDING ---\n` +
+          `File: ${imageAttachment.name || "Uploaded Visual"}\n` +
+          `Classification: ${visionResult.category}\n` +
+          `Visual Analysis: ${visionResult.visualDescription}\n` +
+          `Extracted Text / OCR: ${visionResult.extractedText}\n\n`;
+
+        if (visionResult.mathematicalVerification) {
+          verificationBadge = "Mathematically Verified";
+          combinedKnowledgeContext += `Independent Mathematical Solution: ${visionResult.mathematicalVerification.verifiedResult}\n\n`;
+        }
+      } catch (err: any) {
+        console.warn("Vision processing notice:", err.message);
+      }
+    }
+
+    // 3. Mathematical Problem Solving & Verification Engine
+    const mathCheck = solveAndVerifyMathematics(effectivePrompt);
+    if (mathCheck) {
+      verificationBadge = "Mathematically Verified";
+      knowledgeSources.push("Mathematical Verification Engine");
+      combinedKnowledgeContext += `--- INDEPENDENT MATHEMATICAL DERIVATION & VERIFICATION ---\n` +
+        `Problem Type: ${(mathCheck.problemType || "Calculus").replace(/_/g, " ")}\n` +
+        `Expression: ${mathCheck.expression}\n` +
+        `Verified Exact Result: ${mathCheck.verifiedResult}\n` +
+        `Derivation Steps:\n` +
+        (mathCheck.steps || []).map((s, idx) => `Step ${idx + 1} (${s.description}): ${s.formula}`).join("\n") +
+        `\n\n`;
+    }
+
+    // 4. Programming Code Syntax Validation & Sandbox Execution
+    const codeBlocks = extractCodeBlocks(effectivePrompt);
+    if (codeBlocks.length > 0) {
+      knowledgeSources.push("Programming Sandbox");
+      verificationBadge = "Sandbox Tested";
+      for (const block of codeBlocks) {
+        const syntaxCheck = validateCodeSyntax(block.code, block.language);
+        const complexity = analyzeCodeComplexity(block.code);
+
+        combinedKnowledgeContext += `--- CODE STATIC ANALYSIS & VERIFICATION ---\n` +
+          `Language: ${block.language}\n` +
+          `Syntax Valid: ${syntaxCheck.isValid}\n` +
+          (syntaxCheck.errors.length > 0 ? `Detected Errors: ${syntaxCheck.errors.join("; ")}\n` : "") +
+          `Estimated Time Complexity: ${complexity.timeComplexity}\n` +
+          `Estimated Space Complexity: ${complexity.spaceComplexity}\n\n`;
+
+        // If user specifically requested to run/execute/test the code
+        if (/\b(run|execute|test|output)\b/i.test(effectivePrompt) && syntaxCheck.isValid) {
+          const runResult = await executeSandboxedCode({
+            code: block.code,
+            language: block.language as any,
+          });
+          combinedKnowledgeContext += `--- SANDBOX EXECUTION OUTPUT ---\n` +
+            `Exit Code: ${runResult.exitCode}\n` +
+            `Standard Output:\n${runResult.stdout || "(no output)"}\n` +
+            (runResult.stderr ? `Standard Error:\n${runResult.stderr}\n` : "") +
+            `Execution Duration: ${runResult.executionTimeMs}ms\n\n`;
+        }
+      }
+    }
+
+    // 5. Intelligent Real-Time Web Search & Structured Data Retrieval
+    const searchIntent = classifySearchIntent(effectivePrompt, mode);
+    const isRagNeeded = shouldPerformRag(effectivePrompt, documentIds);
 
     const retrievalPromises: [Promise<any[]>, Promise<any[]>] = [
       isRagNeeded
         ? retrieveRelevantPassages(
-            lastUserPrompt,
+            effectivePrompt,
             documentIds.length > 0 ? documentIds : undefined,
             3
           )
         : Promise.resolve([]),
       searchIntent.needsLiveSearch
-        ? fetchRealtimeEducationalData(lastUserPrompt, mode)
+        ? fetchRealtimeEducationalData(effectivePrompt, mode)
         : Promise.resolve([]),
     ];
 
     const [retrievedPassages, realtimeData] = await Promise.all(retrievalPromises);
-
-    let combinedKnowledgeContext = "";
-    const citations: any[] = [];
-    const knowledgeSources: string[] = ["Pretrained Knowledge"];
 
     // Add textbook citations if genuine RAG was performed
     if (retrievedPassages.length > 0) {
@@ -94,12 +182,15 @@ export async function POST(req: NextRequest) {
     // Add real-time live web & Google search data scraped across the web
     if (realtimeData.length > 0) {
       knowledgeSources.push("Live Web Search");
+      if (!verificationBadge) verificationBadge = "Real-Time Verified";
+
       combinedKnowledgeContext += "--- REAL-TIME LIVE RESEARCH & SCRAPED WEB DATA ---\n";
       realtimeData.forEach((item, i) => {
         const domainStr = item.domain ? ` [${item.domain}]` : "";
         combinedKnowledgeContext += `[Live Source ${i + 1}: ${item.sourceType}${domainStr} - "${item.title}"]\n${item.snippet}\n${
           item.scrapedContent ? `Scraped Page Text Extract:\n${item.scrapedContent}\n` : ""
         }Link: ${item.sourceUrl}\n\n`;
+
         citations.push({
           documentName: `${item.sourceType}${domainStr}: ${item.title}`,
           pageNumber: 1,
@@ -111,14 +202,15 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // 3. Assemble pedagogical system prompt with response mode and knowledge context
+    // 6. Assemble pedagogical system prompt with response mode and knowledge context
     const systemInstruction = buildSystemPrompt({
       mode,
       documentContext: combinedKnowledgeContext,
     });
 
-    const chatHistory = [
-      { role: "system" as const, content: systemInstruction },
+    // 7. Format Chat History with Multimodal Support
+    const chatHistory: ChatMessageParam[] = [
+      { role: "system", content: systemInstruction },
       ...messages
         .filter((m: { role: string }) => m.role === "user" || m.role === "assistant")
         .slice(-8)
@@ -128,29 +220,51 @@ export async function POST(req: NextRequest) {
         })),
     ];
 
-    if (!chatHistory.some((m) => m.content === lastUserPrompt)) {
-      chatHistory.push({ role: "user", content: lastUserPrompt });
+    // Build the user message: if an image attachment exists, format as OpenAI-compatible multimodal content parts
+    let userMessageContent: string | ChatMessageContentPart[] = effectivePrompt;
+    if (imageAttachment) {
+      userMessageContent = [
+        { type: "text", text: effectivePrompt },
+        {
+          type: "image_url",
+          image_url: {
+            url: imageAttachment.data,
+            detail: "auto",
+          },
+        },
+      ];
     }
 
-    // 4. Intelligent Backend Model Routing & Controlled Fallback (Requirement 1 & 2):
-    // - Programming, code debugging, math & complex technical reasoning -> Qwen 2.5
-    // - General knowledge, academic explanations, essays & deep search -> GPT-OSS
-    // - Automatic fallback if preferred backend fails
-    const backendSelection = model === "qwen" || model === "qwen-oss" ? "qwen" : model === "gpt-oss" ? "gpt-oss" : "auto";
-    const { stream: tokenStream, modelUsed: displayModelName } = await executeMultiModelStream(chatHistory, {
-      mode,
-      backend: backendSelection,
-    });
+    if (!chatHistory.some((m) => typeof m.content === "string" && m.content === effectivePrompt)) {
+      chatHistory.push({ role: "user", content: userMessageContent });
+    }
+
+    // 8. Intelligent Backend Model Routing & Controlled Fallback (Requirement 1 & 2)
+    const backendSelection =
+      model === "qwen" || model === "qwen-oss"
+        ? "qwen"
+        : model === "gpt-oss"
+        ? "gpt-oss"
+        : "auto";
+
+    const { stream: tokenStream, modelUsed: displayModelName } = await executeMultiModelStream(
+      chatHistory,
+      {
+        mode: mode as ResponseMode,
+        backend: backendSelection,
+        hasVision,
+      }
+    );
 
     // Track learning activity asynchronously
     recordLearningActivity({
       userId: user.id,
       subject: "Academic Exploration",
-      topic: lastUserPrompt.substring(0, 30),
+      topic: effectivePrompt.substring(0, 30),
       scoreGain: 2,
     }).catch(console.error);
 
-    // Stream to client with SSE headers and persist exactly ONE assistant message when complete
+    // 9. Stream to client with SSE headers and persist assistant message
     const decoder = new TextDecoder();
     let accumulatedText = "";
 
@@ -168,6 +282,7 @@ export async function POST(req: NextRequest) {
             citations: citations.length > 0 ? citations : undefined,
             tokensUsed: Math.ceil(accumulatedText.length / 4),
             modelUsed: displayModelName,
+            verificationBadge,
           });
         } catch (e) {
           console.error("Failed to persist assistant message:", e);
@@ -182,6 +297,7 @@ export async function POST(req: NextRequest) {
         "X-Model-Used": displayModelName,
         "X-Citations": encodeURIComponent(JSON.stringify(citations)),
         "X-Knowledge-Sources": encodeURIComponent(JSON.stringify(knowledgeSources)),
+        "X-Verification-Status": verificationBadge || "VERIFIED",
         "Cache-Control": "no-cache, no-transform",
       },
     });

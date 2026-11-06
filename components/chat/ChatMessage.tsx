@@ -180,6 +180,14 @@ export function ChatMessage({
                   {message.modelUsed}
                 </span>
               )}
+              {isAssistant && message.verificationBadge && (
+                <span
+                  className="text-[9px] sm:text-[10px] font-mono text-emerald-300 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30 truncate"
+                  title="Independently verified"
+                >
+                  ✓ {message.verificationBadge}
+                </span>
+              )}
             </div>
 
             {/* Quick Actions */}
@@ -296,9 +304,22 @@ export function ChatMessage({
             </div>
           )}
 
-          {/* Non-assistant plain message */}
+          {/* Non-assistant plain message & attached images */}
           {!isAssistant && (
-            <div className="text-slate-200 leading-relaxed">
+            <div className="text-slate-200 leading-relaxed space-y-2">
+              {message.attachments && message.attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2 pb-1">
+                  {message.attachments.map((att, i) => (
+                    <div key={i} className="rounded-xl overflow-hidden border border-white/10 max-w-xs shadow-lg bg-black/40">
+                      {att.data?.startsWith("data:image/") || att.type === "image" ? (
+                        <img src={att.data} alt={att.name || "Attached Image"} className="max-h-56 object-contain rounded-lg" />
+                      ) : (
+                        <div className="p-2 text-xs text-slate-300 font-mono">{att.name}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
               <MarkdownRenderer content={message.content} />
             </div>
           )}

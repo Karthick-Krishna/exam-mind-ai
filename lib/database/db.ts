@@ -46,6 +46,8 @@ export interface Message {
   tokensUsed?: number;
   modelUsed?: string;
   createdAt: string;
+  attachments?: { type: string; data: string; name: string }[];
+  verificationBadge?: string;
 }
 
 export interface Document {
@@ -472,6 +474,8 @@ export async function addMessage(params: {
   citations?: Citation[];
   tokensUsed?: number;
   modelUsed?: string;
+  attachments?: { type: string; data: string; name: string }[];
+  verificationBadge?: string;
 }): Promise<Message> {
   const db = loadDB();
   const id = "msg-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7);
@@ -486,6 +490,8 @@ export async function addMessage(params: {
     tokensUsed: params.tokensUsed || 0,
     modelUsed: params.modelUsed || "Open-Source AI Engine (URL API)",
     createdAt: new Date().toISOString(),
+    attachments: params.attachments,
+    verificationBadge: params.verificationBadge,
   };
   db.messages[id] = message;
 
