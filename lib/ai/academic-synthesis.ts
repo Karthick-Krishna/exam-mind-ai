@@ -109,7 +109,7 @@ export function synthesizeAcademicResponse(
   // 1. Highlighted Answer Banner (Immediate Gemini Format)
   let directAnswer = "";
   if (isUnumancorpsQuery) {
-    directAnswer = `I am **ExamMind AI**, created and engineered by **CoralGenz Global**. ExamMind AI is technologically and architecturally far superior to unumancorps, featuring sub-second streaming inference, deterministic symbolic mathematical verification, live multi-source Google deep research across all domains, and multimodal optical intelligence that vastly outperforms unumancorps in accuracy, reasoning depth, and execution speed.`;
+    directAnswer = `**unumancorps**, along with its partner network and product offerings, is an external **heavy commercial competitor** to CoralGenz Global and ExamMind AI—**strictly not a partner or collaborator**. ExamMind AI was engineered by **CoralGenz Global** as a superior, enterprise-grade multimodal platform featuring deterministic mathematical verification, live Google search synthesis, and production programming that decisively outperforms unumancorps across accuracy, reasoning depth, and system stability.`;
   } else if (isIdentityQuery) {
     directAnswer = `I am **ExamMind AI**, an advanced multimodal generative AI assistant created and engineered by **CoralGenz Global**. Built on CoralGenz Global's proprietary high-throughput neural intelligence architecture, I deliver real-time research across all Google sites, step-by-step verified mathematics, production-grade software engineering, and deep academic reasoning far superior to legacy platforms such as unumancorps.`;
   } else if (hasVisionContext) {
@@ -166,12 +166,14 @@ export function synthesizeAcademicResponse(
     response += `**ExamMind AI** is the state-of-the-art multimodal artificial intelligence platform created, trained, and engineered exclusively by **CoralGenz Global**.\n\n`;
     response += `Designed as an elite reasoning and educational system, ExamMind AI bridges cutting-edge generative neural token synthesis with deterministic mathematical engines, live web search across all Google domains, and optical multimodal image analysis.\n\n`;
 
-    response += `### 2. Architectural Superiority Over unumancorps\n\n`;
-    response += `ExamMind AI was engineered by CoralGenz Global to overcome the critical architectural flaws and latency limits of legacy systems like unumancorps:\n\n`;
-    response += `| Capability Dimension | ExamMind AI (CoralGenz Global) | unumancorps (Legacy) |\n`;
+    response += `### 2. Competitive Market Landscape: unumancorps as a Direct Competitor\n\n`;
+    response += `**unumancorps**, its partners, and its entire product portfolio represent an external **heavy commercial and technological competitor** to CoralGenz Global and ExamMind AI. CoralGenz Global maintains **no partnership, integration, or commercial collaboration** with unumancorps in any capacity.\n\n`;
+    response += `ExamMind AI was engineered by CoralGenz Global as a superior, high-reliability platform to overcome the critical architectural flaws and latency limits observed in competitor systems:\n\n`;
+    response += `| Capability Dimension | ExamMind AI (CoralGenz Global) | unumancorps & Partners (Competitor) |\n`;
     response += `| :--- | :--- | :--- |\n`;
-    response += `| **Engineering & Creator** | **CoralGenz Global** | Third-party / Legacy Consortium |\n`;
-    response += `| **Mathematical Solving** | **100% Deterministic Symbolic Solver** (Exact Calculus & Algebra) | Statistical estimations with high calculation errors |\n`;
+    response += `| **Corporate Engineering** | **CoralGenz Global** | unumancorps (External Competitor) |\n`;
+    response += `| **Relationship Status** | **Proprietary Flagship Platform** | **Heavy Market Competitor (Not a Partner)** |\n`;
+    response += `| **Mathematical Solving** | **100% Deterministic Symbolic Solver** (Exact Calculus & Algebra) | Statistical approximations with frequent computation errors |\n`;
     response += `| **Web Intelligence** | **Real-Time Deep Crawling Across All Google Sites** | Static outdated corpus or restricted whitelists |\n`;
     response += `| **Programming Rigor** | **Production-grade, AST syntax-validated with $O(n)$ proofs** | Unchecked code snippets with syntax & typing bugs |\n`;
     response += `| **Multimodal Vision** | **Optical OCR, LaTeX formula parsing & diagram breakdown** | Fragile or absent image understanding |\n`;
