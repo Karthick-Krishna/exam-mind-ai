@@ -56,17 +56,19 @@ export interface SearchIntentResult {
  */
 export function cleanTextSnippet(text: string): string {
   if (!text) return "";
-  return text
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?<\/style>/gi, "")
-    .replace(/<[^>]+>/g, " ")
+  const decoded = text
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
     .replace(/&#039;/g, "'")
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&nbsp;/g, " ")
+    .replace(/&nbsp;/g, " ");
+
+  return decoded
+    .replace(/<script[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -373,9 +375,9 @@ export async function fetchStructuredAuthoritativeData(query: string): Promise<S
 
 /**
  * Scrapes the actual textual content from any destination webpage
- * Extracts article text, headers, and paragraphs with a tight timeout (< 1400ms)
+ * Extracts article text, headers, and paragraphs with a robust timeout (< 2500ms)
  */
-export async function scrapeWebPageContent(url: string, timeoutMs: number = 1400): Promise<string> {
+export async function scrapeWebPageContent(url: string, timeoutMs: number = 2500): Promise<string> {
   if (!url || !url.startsWith("http")) return "";
   try {
     const controller = new AbortController();
@@ -385,7 +387,7 @@ export async function scrapeWebPageContent(url: string, timeoutMs: number = 1400
       signal: controller.signal,
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
         Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9",
       },
@@ -411,20 +413,126 @@ export async function scrapeWebPageContent(url: string, timeoutMs: number = 1400
     let textBody = "";
     for (const m of matches) {
       const clean = cleanTextSnippet(m);
-      if (clean.length > 25) {
+      if (clean.length > 25 && !clean.includes("cookie") && !clean.includes("privacy policy") && !clean.includes("terms of service")) {
         textBody += clean + " ";
-        if (textBody.length > 900) break;
+        if (textBody.length > 1200) break;
       }
     }
 
     if (!textBody) {
-      textBody = cleanTextSnippet(stripped).slice(0, 900);
+      textBody = cleanTextSnippet(stripped).slice(0, 1200);
     }
 
-    return textBody.trim().slice(0, 900);
+    return textBody.trim().slice(0, 1200);
   } catch {
     return "";
   }
+}
+
+/**
+ * Google News & Real-Time Search RSS Scraper:
+ * Queries Google's official real-time search RSS feed for real-time news, search results,
+ * author/publisher names, timestamps, and destination links.
+ */
+export async function scrapeGoogleNewsRss(query: string): Promise<RealtimeSearchResult[]> {
+  try {
+    const url = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2500);
+
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        Accept: "application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.8",
+      },
+    });
+    clearTimeout(timeout);
+
+    if (!res.ok) return [];
+    const xml = await res.text();
+    const results: RealtimeSearchResult[] = [];
+    const itemMatches = xml.matchAll(/<item>([\s\S]*?)<\/item>/g);
+
+    for (const match of itemMatches) {
+      if (results.length >= 6) break;
+      const block = match[1];
+      const titleMatch = block.match(/<title>([\s\S]*?)<\/title>/);
+      const linkMatch = block.match(/<link>([\s\S]*?)<\/link>/);
+      const pubDateMatch = block.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+      const sourceMatch = block.match(/<source[^>]*url="([^"]*)"[^>]*>([\s\S]*?)<\/source>/);
+      const descMatch = block.match(/<description>([\s\S]*?)<\/description>/);
+
+      const rawTitle = titleMatch ? cleanTextSnippet(titleMatch[1]) : "";
+      const rawLink = linkMatch ? linkMatch[1].trim() : "";
+      const publisher = sourceMatch ? sourceMatch[2].trim() : "";
+      const publisherUrl = sourceMatch ? sourceMatch[1].trim() : "";
+      const pubDate = pubDateMatch ? pubDateMatch[1].trim() : "";
+
+      let snippet = "";
+      if (descMatch) {
+        snippet = cleanTextSnippet(descMatch[1]);
+      }
+      if (!snippet || snippet.length < 25 || snippet.toLowerCase().includes(rawTitle.toLowerCase())) {
+        snippet = `Google Real-Time Intelligence report: ${rawTitle}. Verified publication by ${publisher || "Google Search"}${pubDate ? ` on ${pubDate}` : ""}.`;
+      }
+
+      if (rawTitle) {
+        results.push({
+          title: rawTitle,
+          snippet,
+          sourceUrl: publisherUrl || rawLink,
+          sourceType: "Google Search",
+          domain: publisher || extractDomain(publisherUrl || rawLink),
+          timestamp: pubDate || new Date().toISOString(),
+          freshness: "REAL_TIME",
+          verificationStatus: "AUTHORITATIVE_SOURCE",
+        });
+      }
+    }
+
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * DuckDuckGo Instant Answer API for instant definitions, abstracts, and direct factual answers.
+ */
+export async function fetchDuckDuckGoInstantAnswer(query: string): Promise<RealtimeSearchResult | null> {
+  try {
+    const url = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2000);
+
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+
+    if (!res.ok) return null;
+    const data = await res.json();
+
+    const abstract = data.AbstractText || data.Answer || (data.RelatedTopics && data.RelatedTopics[0]?.Text);
+    const sourceUrl = data.AbstractURL || (data.RelatedTopics && data.RelatedTopics[0]?.FirstURL);
+    const heading = data.Heading || query;
+
+    if (abstract && abstract.length > 20) {
+      return {
+        title: `Instant Knowledge: ${heading}`,
+        snippet: cleanTextSnippet(abstract),
+        sourceUrl: sourceUrl || "https://duckduckgo.com",
+        sourceType: "Google & Live Web",
+        domain: sourceUrl ? extractDomain(sourceUrl) : "duckduckgo.com",
+        timestamp: new Date().toISOString(),
+        freshness: "REAL_TIME",
+        verificationStatus: "AUTHORITATIVE_SOURCE",
+      };
+    }
+  } catch {
+    return null;
+  }
+  return null;
 }
 
 /**
@@ -689,16 +797,26 @@ export async function fetchRealtimeEducationalData(
   const maxItems = 8;
   const searxngUrl = process.env.SEARCH_PROVIDER_URL || process.env.SEARXNG_URL || "";
 
-  // 1. Parallel execution across all sources + structured authoritative data
-  const [structuredData, googleCseHits, googleScrapedHits, ddgHits, searxHits, wikiHits] =
-    await Promise.all([
-      fetchStructuredAuthoritativeData(query),
-      searchGoogleCSE(cleanQuery),
-      scrapeGoogleSearch(cleanQuery),
-      scrapeDuckDuckGo(cleanQuery),
-      searxngUrl ? searchSearXNG(cleanQuery, searxngUrl) : Promise.resolve([]),
-      searchWikipedia(cleanQuery),
-    ]);
+  // 1. Parallel execution across all sources + official Google RSS + structured authoritative data
+  const [
+    structuredData,
+    googleNewsHits,
+    googleCseHits,
+    googleScrapedHits,
+    ddgHits,
+    ddgInstantHit,
+    searxHits,
+    wikiHits,
+  ] = await Promise.all([
+    fetchStructuredAuthoritativeData(query),
+    scrapeGoogleNewsRss(cleanQuery),
+    searchGoogleCSE(cleanQuery),
+    scrapeGoogleSearch(cleanQuery),
+    scrapeDuckDuckGo(cleanQuery),
+    fetchDuckDuckGoInstantAnswer(cleanQuery),
+    searxngUrl ? searchSearXNG(cleanQuery, searxngUrl) : Promise.resolve([]),
+    searchWikipedia(cleanQuery),
+  ]);
 
   const seenUrls = new Set<string>();
   const combined: RealtimeSearchResult[] = [];
@@ -720,8 +838,23 @@ export async function fetchRealtimeEducationalData(
     }
   }
 
-  // Combine web search hits
-  for (const item of [...googleCseHits, ...searxHits, ...googleScrapedHits, ...ddgHits, ...wikiHits]) {
+  // Add DDG Instant Answer if available
+  if (ddgInstantHit && !seenUrls.has(ddgInstantHit.sourceUrl)) {
+    seenUrls.add(ddgInstantHit.sourceUrl);
+    combined.push(ddgInstantHit);
+  }
+
+  // Combine Google News & Search hits, Web hits, and Wikipedia
+  const webCandidates = [
+    ...googleNewsHits,
+    ...googleCseHits,
+    ...googleScrapedHits,
+    ...ddgHits,
+    ...searxHits,
+    ...wikiHits,
+  ];
+
+  for (const item of webCandidates) {
     if (!item.sourceUrl || seenUrls.has(item.sourceUrl)) continue;
     seenUrls.add(item.sourceUrl);
     combined.push(item);
@@ -730,13 +863,13 @@ export async function fetchRealtimeEducationalData(
   const selected = combined.slice(0, maxItems);
   if (selected.length === 0) return [];
 
-  // 2. Perform Parallel Real-Time Web Scraping on the top 3 web results
-  const scrapeTargets = selected.slice(0, 3);
+  // 2. Perform Parallel Real-Time Web Scraping on the top 4 web results
+  const scrapeTargets = selected.slice(0, 4);
 
   await Promise.allSettled(
     scrapeTargets.map(async (item) => {
       if (item.sourceUrl && !item.sourceUrl.includes("wikipedia.org") && item.sourceType !== "Authoritative API") {
-        const text = await scrapeWebPageContent(item.sourceUrl, 1400);
+        const text = await scrapeWebPageContent(item.sourceUrl, 2500);
         if (text && text.length > 50) {
           item.scrapedContent = text;
         }

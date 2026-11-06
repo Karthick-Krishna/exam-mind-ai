@@ -320,7 +320,7 @@ export function resolveTargetModelName(
   }
 
   if (backend === "qwen") {
-    if (isPollinations) return "qwen-coder";
+    if (isPollinations) return "openai-fast";
     if (isGroq) return "qwen-2.5-coder-32b";
     if (isOpenRouter) return "qwen/qwen-2.5-72b-instruct";
     if (isOllama) return "qwen2.5";
@@ -694,8 +694,8 @@ async function callHttpInferenceStream(
         };
       });
 
-  // 25s connection & token window
-  const timeoutId = setTimeout(() => controller.abort(), 25000);
+  // 12s connection & token window for rapid failover
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
 
   try {
     const response = await fetch(endpoint, {
@@ -771,10 +771,15 @@ function transformUniversalStreamToTextStream(
                 try {
                   const json = JSON.parse(trimmed.slice(6));
                   const delta = json.choices?.[0]?.delta;
-                  let token = delta?.content ?? delta?.text ?? "";
+                  let token = (delta?.content !== undefined && delta?.content !== null && delta?.content !== "")
+                    ? delta.content
+                    : (delta?.reasoning ?? delta?.text ?? "");
 
                   if (!token && json.choices?.[0]?.message?.content) {
                     token = json.choices[0].message.content;
+                  }
+                  if (!token && json.choices?.[0]?.message?.reasoning) {
+                    token = json.choices[0].message.reasoning;
                   }
 
                   if (token) {
@@ -811,7 +816,10 @@ function transformUniversalStreamToTextStream(
           if (buffer.startsWith("data: ")) {
             try {
               const json = JSON.parse(buffer.slice(6));
-              const token = json.choices?.[0]?.delta?.content || "";
+              const delta = json.choices?.[0]?.delta;
+              const token = (delta?.content !== undefined && delta?.content !== null && delta?.content !== "")
+                ? delta.content
+                : (delta?.reasoning ?? delta?.text ?? json.choices?.[0]?.message?.content ?? "");
               if (token) controller.enqueue(encoder.encode(token));
             } catch {
               // ignore
