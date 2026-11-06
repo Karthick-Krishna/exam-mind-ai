@@ -18,8 +18,15 @@ import { solveAndVerifyMathematics } from "@/lib/math/math-engine";
 import { extractCodeBlocks, validateCodeSyntax, analyzeCodeComplexity, executeSandboxedCode } from "@/lib/code/code-runner";
 import { processMultimodalAttachment, ImageAttachment } from "@/lib/vision/vision-engine";
 import { formatCompetitiveIntelligenceForPrompt } from "../../../lib/utils/competitive-intelligence";
+import { logCompetitiveIntelligenceStatus } from "../../../lib/utils/production-verification";
 
 export async function POST(req: NextRequest) {
+  // Log competitive intelligence status for debugging
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔍 Production competitive intelligence status check');
+    logCompetitiveIntelligenceStatus();
+  }
+  
   try {
     const body = await req.json();
     const {

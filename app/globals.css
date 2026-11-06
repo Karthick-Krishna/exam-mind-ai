@@ -114,6 +114,32 @@ body {
   animation: pulseGlow 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+@keyframes radarSweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-radar {
+  animation: radarSweep 3s linear infinite;
+}
+
+@keyframes terminalCursor {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.animate-cursor {
+  animation: terminalCursor 0.8s infinite;
+}
+
 /* Code block formatting - ChatGPT style */
 pre {
   background: #0d0d0d !important;

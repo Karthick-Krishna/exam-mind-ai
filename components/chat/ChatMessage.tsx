@@ -103,6 +103,7 @@ export function ChatMessage({
 }: ChatMessageProps) {
   const [copied, setCopied] = useState(false);
   const [showCitations, setShowCitations] = useState(false);
+  const [showLiveConsole, setShowLiveConsole] = useState(false);
   const [currentFeedback, setCurrentFeedback] = useState<"LIKE" | "DISLIKE" | null>(
     message.feedback || null
   );
@@ -317,11 +318,25 @@ export function ChatMessage({
             <ThinkingIndicator mode={mode} />
           )}
 
-          {/* Static confirmation banner once answer starts rendering */}
+          {/* Confirmation & Collapsible Live Console Banner once answer renders */}
           {(highlightedAnswer !== null || remainingContent) && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50/70 border border-emerald-200 text-emerald-800 text-[11px] font-medium w-fit mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-              <span>Deep Search active: Scraped all sites on Google &amp; compiled research dossier</span>
+            <div className="mb-2">
+              <button
+                type="button"
+                onClick={() => setShowLiveConsole(!showLiveConsole)}
+                className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-emerald-50/80 hover:bg-emerald-100/80 border border-emerald-200 text-emerald-800 text-[11px] font-medium transition-colors shadow-2xs group text-left"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 flex-shrink-0" />
+                <span className="truncate">Deep Search active: Scraped all sites on Google &amp; compiled research dossier</span>
+                <span className="text-[10px] font-mono text-emerald-700/80 underline group-hover:text-emerald-950 flex-shrink-0 ml-1">
+                  {showLiveConsole ? "Hide Terminal" : "View Code & Scraper Logs"}
+                </span>
+              </button>
+              {showLiveConsole && (
+                <div className="mt-2">
+                  <ThinkingIndicator mode={mode} />
+                </div>
+              )}
             </div>
           )}
 
